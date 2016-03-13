@@ -34,3 +34,31 @@ function umenu_schema() {
 
   return $schema;
 }
+
+/**
+ * Insert default Drupal menu because they are hardcoded in too many places.
+ */
+function umenu_install_default_menus() {
+  db_insert('umenu')
+    ->fields(['name', 'title'])
+    ->values(['main-menu', 'Main menu'])
+    ->values(['management', 'Management'])
+    ->values(['navigation', 'Navvigation'])
+    ->values(['user-menu', 'User menu'])
+    ->execute()
+  ;
+}
+
+/**
+ * Implements hook_install().
+ */
+function umenu_install() {
+  umenu_install_default_menus();
+}
+
+/**
+ * Insert default Drupal menu because they are hardcoded in too many places.
+ */
+function umenu_update_7001() {
+  umenu_install_default_menus();
+}
