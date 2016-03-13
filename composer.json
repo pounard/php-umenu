@@ -1,0 +1,27 @@
+{
+    "name": "makinacorpus/drupal-umenu",
+    "type": "drupal-module",
+    "description": "Drupal core menu module replacement that does not attach to node types",
+    "keywords": [],
+    "homepage": "http://github.com/makinacorpus/drupal-umenu",
+    "license": "GPL-2",
+    "authors": [
+        {
+            "name": "Pierre Rineau",
+            "email": "pierre.rineau@makina-corpus.com"
+        },
+        {
+            "name": "Makina Corpus",
+            "homepage": "http://makina-corpus.com"
+        }
+    ],
+    "autoload" : {
+        "psr-4" : {
+            "MakinaCorpus\\Umenu\\" : "src"
+        }
+    },
+    "require" : {
+        "makinacorpus/drupal-sf-dic" : "^3.0"
+    },
+    "minimum-stability": "dev"
+}

@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function umenu_schema() {
+  $schema = [];
+
+  $schema['umenu'] = [
+    'description' => 'Holds definitions for top-level custom menus (for example, Main menu).',
+    'fields' => [
+      'name' => [
+        'description' => 'Primary Key: Unique key for menu. This is used as a block delta so length is 32.',
+        'type'        => 'varchar',
+        'length'      => 32,
+        'not null'    => true,
+        'default'     => '',
+      ],
+      'title' => [
+        'description' => 'Menu title; displayed at top of block.',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => true,
+        'default'     => '',
+      ],
+      'description' => [
+        'description' => 'Menu description.',
+        'type'        => 'text',
+        'not null'    => false,
+      ],
+    ],
+    'primary key' => ['name'],
+  ];
+
+  return $schema;
+}

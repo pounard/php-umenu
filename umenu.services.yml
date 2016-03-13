@@ -1,0 +1,12 @@
+services:
+
+  # Default database driven storage, it must be always in use, even if
+  # proxified by another implementation because database is and will
+  # remain the primary storage
+  umenu.storage.drupal:
+    class: MakinaCorpus\Umenu\DrupalMenuStorage
+    arguments: ["@database", "@event_dispatcher"]
+
+  # Change this to change the primary storage
+  umenu.storage:
+    alias: umenu.storage.drupal
