@@ -25,6 +25,15 @@ interface MenuStorageInterface
     public function load($name);
 
     /**
+     * Check that a menu definition exists
+     *
+     * @param string $name
+     *
+     * @return boolean
+     */
+    public function exists($name);
+
+    /**
      * Load multiple menu definitions
      *
      * @param string[] $nameList

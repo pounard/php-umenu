@@ -45,6 +45,16 @@ class DrupalMenuStorage implements MenuStorageInterface
     /**
      * {@inheritdoc}
      */
+    public function exists($name)
+    {
+        $list = $this->loadMultiple([$name]);
+
+        return (boolean)$list;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function loadMultiple($nameList)
     {
         return $this->loadWithConditions(['name' => $nameList]);
