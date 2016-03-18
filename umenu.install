@@ -43,7 +43,7 @@ function umenu_install_default_menus() {
     ->fields(['name', 'title'])
     ->values(['main-menu', 'Main menu'])
     ->values(['management', 'Management'])
-    ->values(['navigation', 'Navvigation'])
+    ->values(['navigation', 'Navigation'])
     ->values(['user-menu', 'User menu'])
     ->execute()
   ;
