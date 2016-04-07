@@ -7,11 +7,11 @@ use MakinaCorpus\Umenu\DrupalMenuStorage;
 
 class DrupalMenuStorageTest extends AbstractDrupalTest
 {
-    protected function setUp()
+    protected function tearDown()
     {
-        parent::setUp();
+        $this->getDatabaseConnection()->query("DELETE FROM {umenu} WHERE name IN ('foo', 'bar', 'a', 'b', 'c', 'd', 'e', 'f')");
 
-        $this->getDatabaseConnection()->query("DELETE FROM {umenu}");
+        parent::tearDown();
     }
 
     public function testCrud()
