@@ -9,27 +9,118 @@ function umenu_schema() {
   $schema['umenu'] = [
     'description' => 'Holds definitions for top-level custom menus (for example, Main menu).',
     'fields' => [
+      'id' => [
+        'description' => 'Internal primary key',
+        'type'        => 'serial',
+        'not null'    => true,
+      ],
+      'site_id' => [
+        'description' => 'Site identifier',
+        'type'        => 'integer',
+        'unsigned'    => true,
+        'not null'    => true,
+      ],
       'name' => [
-        'description' => 'Primary Key: Unique key for menu. This is used as a block delta so length is 32.',
+        'description' => 'Primary Key: Unique key for menu. This is used as a block delta so length is 32',
         'type'        => 'varchar',
         'length'      => 32,
         'not null'    => true,
         'default'     => '',
       ],
       'title' => [
-        'description' => 'Menu title; displayed at top of block.',
+        'description' => 'Menu title; displayed at top of block',
         'type'        => 'varchar',
         'length'      => 255,
         'not null'    => true,
         'default'     => '',
       ],
       'description' => [
-        'description' => 'Menu description.',
+        'description' => 'Menu description',
         'type'        => 'text',
         'not null'    => false,
       ],
     ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'uk_umenu_name' => ['name'],
+    ],
+    'foreign keys' => [
+      'fk_umenu_item_site' => [
+        'table'   => 'menu',
+        'columns' => ['menu_id' => 'id'],
+        'delete'  => 'cascade',
+      ],
+    ],
+  ];
+
+  $schema['umenu_item'] = [
+    'description' => 'Holds menu items',
+    'fields' => [
+      'id' => [
+        'description' => 'Primary key',
+        'type'        => 'serial',
+        'not null'    => true,
+      ],
+      'menu_id' => [
+        'description' => 'Menu identifier',
+        'type'        => 'integer',
+        'unsigned'    => true,
+        'not null'    => true,
+      ],
+      'site_id' => [
+        'description' => 'Site identifier denormalization, used for foreign key constraints',
+        'type'        => 'integer',
+        'unsigned'    => true,
+        'not null'    => true,
+      ],
+      'node_id' => [
+        'description' => 'Node (content) identifier',
+        'type'        => 'integer',
+        'unsigned'    => true,
+        'not null'    => true,
+      ],
+      'parent_id' => [
+        'description' => 'Parent identifier refering to this table primary key',
+        'type'        => 'integer',
+        'unsigned'    => true,
+        'not null'    => false,
+        'default'     => null,
+      ],
+      'title' => [
+        'description' => 'Menu item title, used for display, content title is used if null',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => false,
+        'default'     => null,
+      ],
+      'description' => [
+        'description' => 'Menu item description, may be used for display.',
+        'type'        => 'text',
+        'not null'    => false,
+        'default'     => null,
+      ],
+    ],
     'primary key' => ['name'],
+    'foreign keys' => [
+      'fk_umenu_item_menu' => [
+        'table'   => 'menu',
+        'columns' => ['menu_id' => 'id'],
+        'delete'  => 'cascade',
+      ],
+      'fk_umenu_parent' => [
+        'table'   => 'umenu_item',
+        'columns' => ['menu_id' => 'id'],
+        'delete'  => 'setnull',
+      ],
+      'fk_umenu_item_node_site' => [
+        'table'   => 'node',
+        'columns' => [
+          'site_id' => 'site_id',
+          'node_id' => 'node_id',
+        ],
+        'delete'  => 'cascade',
+      ],
+    ]
   ];
 
   return $schema;
@@ -56,4 +147,16 @@ function umenu_install() {
  */
 function umenu_update_7002() {
   umenu_install_default_menus();
+}
+
+/**
+ * Update schema.
+ */
+function umenu_update_7003() {
+  if (!db_table_exists('umenu_item')) {
+    db_create_table('umenu_item', drupal_get_schema_unprocessed('umenu', 'umenu_item'));
+  }
+  if (!db_field_exists('umenu', 'id')) {
+    db_rename_table($table, $new_name);
+  }
 }
