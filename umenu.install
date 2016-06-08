@@ -1,5 +1,7 @@
 <?php
 
+use MakinaCorpus\PluSQL\Constraint;
+
 /**
  * Implements hook_schema().
  */
@@ -12,27 +14,27 @@ function umenu_schema() {
       'id' => [
         'description' => 'Internal primary key',
         'type'        => 'serial',
+        'unsigned'    => true,
         'not null'    => true,
       ],
       'site_id' => [
         'description' => 'Site identifier',
-        'type'        => 'integer',
+        'type'        => 'int',
         'unsigned'    => true,
-        'not null'    => true,
+        'not null'    => false,
+        'default'     => null,
       ],
       'name' => [
         'description' => 'Primary Key: Unique key for menu. This is used as a block delta so length is 32',
         'type'        => 'varchar',
         'length'      => 32,
         'not null'    => true,
-        'default'     => '',
       ],
       'title' => [
         'description' => 'Menu title; displayed at top of block',
         'type'        => 'varchar',
         'length'      => 255,
         'not null'    => true,
-        'default'     => '',
       ],
       'description' => [
         'description' => 'Menu description',
@@ -45,9 +47,9 @@ function umenu_schema() {
       'uk_umenu_name' => ['name'],
     ],
     'foreign keys' => [
-      'fk_umenu_item_site' => [
-        'table'   => 'menu',
-        'columns' => ['menu_id' => 'id'],
+      'item_site' => [
+        'table'   => 'ucms_site',
+        'columns' => ['site_id' => 'id'],
         'delete'  => 'cascade',
       ],
     ],
@@ -59,29 +61,30 @@ function umenu_schema() {
       'id' => [
         'description' => 'Primary key',
         'type'        => 'serial',
+        'unsigned'    => true,
         'not null'    => true,
       ],
       'menu_id' => [
         'description' => 'Menu identifier',
-        'type'        => 'integer',
+        'type'        => 'int',
         'unsigned'    => true,
         'not null'    => true,
       ],
       'site_id' => [
         'description' => 'Site identifier denormalization, used for foreign key constraints',
-        'type'        => 'integer',
+        'type'        => 'int',
         'unsigned'    => true,
         'not null'    => true,
       ],
       'node_id' => [
         'description' => 'Node (content) identifier',
-        'type'        => 'integer',
+        'type'        => 'int',
         'unsigned'    => true,
         'not null'    => true,
       ],
       'parent_id' => [
         'description' => 'Parent identifier refering to this table primary key',
-        'type'        => 'integer',
+        'type'        => 'int',
         'unsigned'    => true,
         'not null'    => false,
         'default'     => null,
@@ -100,20 +103,20 @@ function umenu_schema() {
         'default'     => null,
       ],
     ],
-    'primary key' => ['name'],
+    'primary key' => ['id'],
     'foreign keys' => [
-      'fk_umenu_item_menu' => [
-        'table'   => 'menu',
+      'item_menu' => [
+        'table'   => 'umenu',
         'columns' => ['menu_id' => 'id'],
         'delete'  => 'cascade',
       ],
-      'fk_umenu_parent' => [
+      'item_parent' => [
         'table'   => 'umenu_item',
-        'columns' => ['menu_id' => 'id'],
-        'delete'  => 'setnull',
+        'columns' => ['parent_id' => 'id'],
+        'delete'  => 'set null',
       ],
-      'fk_umenu_item_node_site' => [
-        'table'   => 'node',
+      'item_node_site' => [
+        'table'   => 'ucms_site_node',
         'columns' => [
           'site_id' => 'site_id',
           'node_id' => 'node_id',
@@ -153,10 +156,34 @@ function umenu_update_7002() {
  * Update schema.
  */
 function umenu_update_7003() {
+
+  if (!db_table_exists('umenu') || !db_field_exists('umenu', 'id')) {
+
+    // We need to drop the foreign key constraint
+    if (db_constraint_exists_unsafe('menu_links', Constraint::FOREIGN_KEY, 'fk_menu_links_menu')) {
+      db_constraint_drop_unsafe('menu_links', Constraint::FOREIGN_KEY, 'fk_menu_links_menu');
+    }
+
+    // Drop and recreate table by selecting all data into another table.
+    // If we already have the table, it means a previous attempt failed
+    // we must keep all data.
+    if (!db_table_exists('umenu_backup_umenu')) {
+      db_query("CREATE TABLE {umenu_backup_umenu} AS SELECT * FROM {umenu}");
+    }
+    if (db_table_exists('umenu')) {
+      db_drop_table('umenu');
+    }
+    db_create_table('umenu', drupal_get_schema_unprocessed('umenu', 'umenu'));
+    db_query("INSERT INTO {umenu} (name, title, description, site_id) SELECT name, title, description, site_id FROM {umenu_backup_umenu}");
+  }
+
+  // Ensure once again constraints
+  db_constraint_add_all('umenu', drupal_get_schema('umenu'));
+
   if (!db_table_exists('umenu_item')) {
     db_create_table('umenu_item', drupal_get_schema_unprocessed('umenu', 'umenu_item'));
   }
-  if (!db_field_exists('umenu', 'id')) {
-    db_rename_table($table, $new_name);
-  }
+
+  // Ensure once again constraints
+  db_constraint_add_all('umenu_item', drupal_get_schema('umenu_item'));
 }
