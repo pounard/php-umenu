@@ -157,6 +157,8 @@ function umenu_update_7002() {
  */
 function umenu_update_7003() {
 
+  module_enable(['plusql']);
+
   if (!db_table_exists('umenu') || !db_field_exists('umenu', 'id')) {
 
     // We need to drop the foreign key constraint
