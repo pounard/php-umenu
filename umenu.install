@@ -187,5 +187,8 @@ function umenu_update_7003() {
   }
 
   // Ensure once again constraints
-  db_constraint_add_all('umenu_item', drupal_get_schema('umenu_item'));
+  // @todo Temporary de-activating this, because I cannot access to Mysql
+  // SHOW ENGINE INNODB STATUS on the box the error happens on, so I'm waiting
+  // for sysadmins to wake up.
+  // db_constraint_add_all('umenu_item', drupal_get_schema('umenu_item'));
 }
