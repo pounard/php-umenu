@@ -25,3 +25,28 @@ function umenu_get_storage() {
 function umenu_get_manager() {
   return \Drupal::service('umenu.manager');
 }
+
+/**
+ * Implements hook_theme().
+ */
+function umenu_theme() {
+  return [
+    'umenu' => [
+      'variables' => ['tree' => null, 'name' => null],
+      'template' => 'views/umenu',
+    ],
+  ];
+}
+
+/**
+ * Implements template_preprocess_HOOK().
+ */
+function template_preprocess_umenu(&$variables) {
+  if (isset($variables['name'])) {
+    $variables['theme_hook_suggestions'][] = 'umenu__' . str_replace('-', '_', $variables['name']);
+  }
+  $variables['current'] = null;
+  if ($node = menu_get_object()) {
+    $variables['current'] = $node->nid;
+  }
+}

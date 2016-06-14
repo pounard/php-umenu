@@ -140,4 +140,14 @@ class Tree extends TreeBase
     {
         return $this->topLevel;
     }
+
+    /**
+     * Get all items in a flattened array
+     *
+     * @return TreeItem[]
+     */
+    public function getAll()
+    {
+        return $this->children;
+    }
 }

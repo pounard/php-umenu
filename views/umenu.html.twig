@@ -1,0 +1,20 @@
+{% macro tree(tree, current) %}
+  {% import _self as umenu %}
+  {% if tree.children %}
+    <ul class="nav nav-stacked">
+      {% for item in tree.children %}
+        <li>
+          {% if current == item.nodeId %}
+            <a class="active" href="{{ url(item.route) }}">{{ item.title }}</a>{{ umenu.tree(item, current) }}
+          {% else %}
+            <a href="{{ url(item.route) }}">{{ item.title }}</a>{{ umenu.tree(item, current) }}
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endmacro %}
+
+{% import _self as umenu %}
+
+{{ umenu.tree(tree, current) }}
