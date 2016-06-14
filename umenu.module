@@ -4,13 +4,24 @@
  * µMenu module.
  */
 
-
 /**
  * Get menu storage service
  *
  * @return \MakinaCorpus\Umenu\DrupalMenuStorage
+ *
  * @deprecated
  */
 function umenu_get_storage() {
   return \Drupal::service('umenu.storage');
+}
+
+/**
+ * Get the tree manager service
+ *
+ * @return \MakinaCorpus\Umenu\TreeManager
+ *
+ * @deprecated
+ */
+function umenu_get_manager() {
+  return \Drupal::service('umenu.manager');
 }

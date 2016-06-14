@@ -4,9 +4,25 @@ services:
   # proxified by another implementation because database is and will
   # remain the primary storage
   umenu.storage.drupal:
+    public: false
     class: MakinaCorpus\Umenu\DrupalMenuStorage
     arguments: ["@database", "@event_dispatcher"]
 
   # Change this to change the primary storage
   umenu.storage:
     alias: umenu.storage.drupal
+
+  # Default tree builder, it will use the Drupal database and the core
+  # menu_links table to load menu items
+  umenu.tree_provider.drupal:
+    public: false
+    class: MakinaCorpus\Umenu\DrupalTreeProvider
+    arguments: ['@database']
+
+  # Change this to change the primary tree builder
+  umenu.tree_provider:
+    alias: umenu.tree_provider.drupal
+
+  umenu.manager:
+    class: MakinaCorpus\Umenu\TreeManager
+    arguments: ['@umenu.storage', '@umenu.tree_provider', '@current_user']

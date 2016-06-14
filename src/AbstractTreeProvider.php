@@ -1,0 +1,83 @@
+<?php
+
+namespace MakinaCorpus\Umenu;
+
+/**
+ * Loads trees.
+ */
+abstract class AbstractTreeProvider
+{
+    private $db;
+
+    /**
+     * Default constructor, do not ommit it!
+     *
+     * @param \DatabaseConnection $db
+     */
+    public function __construct(\DatabaseConnection $db)
+    {
+        $this->db = $db;
+    }
+
+    /**
+     * Load tree items
+     *
+     * @param int $menuId
+     *
+     * @return TreeItem[]
+     */
+    abstract protected function loadTreeItems($menuId);
+
+    /**
+     * @return \DatabaseConnection
+     */
+    final protected function getDatabase()
+    {
+        return $this->db;
+    }
+
+    /**
+     * Build tree
+     *
+     * @param int $menuId
+     *   Menu identifier
+     * @param boolean $withAccess
+     *   Should this check access when loading tree
+     * @param int $userId
+     *   User account identifier for access checks
+     */
+    final public function buildTree($menuId, $withAccess = false, $userId = null)
+    {
+        if ($withAccess && !$userId) {
+            throw new \InvalidArgumentException("loading menu with access checks needs the user identifier");
+        }
+
+        $items = $this->loadTreeItems($menuId);
+
+        if ($withAccess) {
+            $nodeMap = [];
+
+            foreach ($items as $item) {
+                $nodeMap[] = $item->getNodeId();
+            }
+
+            $allowed = $this
+                ->getDatabase()
+                ->select('node', 'n')
+                ->fields('n', ['nid', 'nid'])
+                ->condition('n.nid', $nodeMap)
+                ->addTag('node_access')
+                ->execute()
+                ->fetchAllKeyed()
+            ;
+
+            foreach ($items as $key => $item) {
+                if (!isset($allowed[$item->getNodeId()])) {
+                    unset($items[$key]);
+                }
+            }
+        }
+
+        return new Tree($items);
+    }
+}

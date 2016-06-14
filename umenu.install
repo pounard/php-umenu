@@ -89,6 +89,13 @@ function umenu_schema() {
         'not null'    => false,
         'default'     => null,
       ],
+      'weight' => [
+        'description' => 'Menu item order relative to its parent',
+        'type'        => 'int',
+        'unsigned'    => false,
+        'not null'    => true,
+        'default'     => 0,
+      ],
       'title' => [
         'description' => 'Menu item title, used for display, content title is used if null',
         'type'        => 'varchar',
@@ -191,4 +198,19 @@ function umenu_update_7003() {
   // SHOW ENGINE INNODB STATUS on the box the error happens on, so I'm waiting
   // for sysadmins to wake up.
   // db_constraint_add_all('umenu_item', drupal_get_schema('umenu_item'));
+}
+
+/**
+ * Adds missing {umenu_item}.weight column.
+ */
+function umenu_update_7004() {
+  if (!db_field_exists('umenu_item', 'weight')) {
+    db_add_field('umenu_item', 'weight', [
+      'description' => 'Menu item order relative to its parent',
+      'type'        => 'int',
+      'unsigned'    => false,
+      'not null'    => true,
+      'default'     => 0,
+    ]);
+  }
 }

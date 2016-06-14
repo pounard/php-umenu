@@ -1,4 +1,5 @@
 <?php
+
 namespace MakinaCorpus\Umenu;
 
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
