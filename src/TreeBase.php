@@ -14,10 +14,22 @@ class TreeBase
     protected $children = [];
 
     /**
+     * Get children
+     *
      * @return TreeItem[]
      */
     public function getChildren()
     {
         return $this->children;
+    }
+
+    /**
+     * Has this object children
+     *
+     * @return boolean
+     */
+    public function hasChildren()
+    {
+        return !empty($this->children);
     }
 }
