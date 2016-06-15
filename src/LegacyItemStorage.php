@@ -235,7 +235,6 @@ class LegacyItemStorage implements ItemStorageInterface
         }
 
         $item = menu_link_load($itemId);
-        $existing = $item;
 
         if (null !== $nodeId) {
             $item['link_path'] = 'node/' . $nodeId;
@@ -247,7 +246,7 @@ class LegacyItemStorage implements ItemStorageInterface
             $item['description'] = $description;
         }
 
-        if (!menu_link_save($item, $existing)) {
+        if (!menu_link_save($item)) {
             throw new \RuntimeException("Could not save item");
         }
     }
@@ -262,11 +261,10 @@ class LegacyItemStorage implements ItemStorageInterface
         $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = ?", [$otherItemId])->fetchField();
 
         $item = menu_link_load($itemId);
-        $existing = $item;
         $item['weight'] = $weight;
         $item['plid'] = $otherItemId;
 
-        if (!menu_link_save($item, $existing)) {
+        if (!menu_link_save($item)) {
             throw new \RuntimeException("Could not save item");
         }
     }
@@ -285,11 +283,10 @@ class LegacyItemStorage implements ItemStorageInterface
         $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = 0 AND menu_name = ?", [$menuName])->fetchField();
 
         $item = menu_link_load($itemId);
-        $existing = $item;
         $item['weight'] = $weight;
         $item['plid'] = 0;
 
-        if (!menu_link_save($item, $existing)) {
+        if (!menu_link_save($item)) {
             throw new \RuntimeException("Could not save item");
         }
     }
@@ -314,11 +311,10 @@ class LegacyItemStorage implements ItemStorageInterface
         ;
 
         $item = menu_link_load($itemId);
-        $existing = $item;
         $item['weight'] = $weight + 1;
         $item['plid'] = $parentId;
 
-        if (!menu_link_save($item, $existing)) {
+        if (!menu_link_save($item)) {
             throw new \RuntimeException("Could not save item");
         }
     }
@@ -343,11 +339,10 @@ class LegacyItemStorage implements ItemStorageInterface
         ;
 
         $item = menu_link_load($itemId);
-        $existing = $item;
         $item['weight'] = $weight - 1;
         $item['plid'] = $parentId;
 
-        if (!menu_link_save($item, $existing)) {
+        if (!menu_link_save($item)) {
             throw new \RuntimeException("Could not save item");
         }
     }

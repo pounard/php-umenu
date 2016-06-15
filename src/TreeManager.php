@@ -151,13 +151,13 @@ class TreeManager
      *
      * @return \MakinaCorpus\Umenu\Tree
      */
-    public function buildTree($menuId, $withAccess = false)
+    public function buildTree($menuId, $withAccess = false, $resetCache = false)
     {
         if (!is_numeric($menuId)) {
             $menuId = $this->menuStorage->load($menuId)['id'];
         }
 
-        if (isset($this->cache[$menuId][(int)$withAccess])) {
+        if (!$resetCache && isset($this->cache[$menuId][(int)$withAccess])) {
             return $this->cache[$menuId][(int)$withAccess];
         }
 
