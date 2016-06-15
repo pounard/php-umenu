@@ -79,8 +79,10 @@ class TreeManager
     /**
      * Clone full menu into a new menu within the given site
      *
-     * @param int $menuId
+     * @param int|string $menuId
+     *   Menu name or menu identifier
      * @param int $siteId
+     *   Target site identifier
      * @param string $name
      *
      * @return Tree
@@ -96,13 +98,34 @@ class TreeManager
     }
 
     /**
+     * Clone full menu into a new menu within the given site
+     *
+     * @param int|string $sourceMenuId
+     *   Menu name or menu identifier
+     * @param int|string $targetMenuId
+     *   Menu name or menu identifier
+     *
+     * @return Tree
+     *   Newly created tree
+     */
+    public function cloneMenuIn($sourceMenuId, $targetMenuId)
+    {
+        $source = $this->menuStorage->load($sourceMenuId);
+        $target = $this->menuStorage->load($targetMenuId);
+
+        return $this->cloneTreeIn($target['id'], $this->buildTree($source['id']));
+    }
+
+    /**
      * Clone full tree in given menu
      *
      * This is the default implementation, but the TreeProvider might implement
      * it in a custom and more efficient way if possible.
      *
-     * @param int $menuId
+     * @param int|string $menuId
+     *   Menu name or menu identifier
      * @param Tree $tree
+     *   Source tree to duplicate
      *
      * @return Tree
      *   Newly created tree
