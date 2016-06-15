@@ -5,7 +5,7 @@ namespace MakinaCorpus\Umenu;
 /**
  * Represents a single tree item.
  */
-class TreeItem extends TreeBase
+final class TreeItem extends TreeBase
 {
     private $id;
     private $menu_id;
