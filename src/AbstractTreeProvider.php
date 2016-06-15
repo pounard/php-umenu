@@ -45,10 +45,11 @@ abstract class AbstractTreeProvider
      *   Should this check access when loading tree
      * @param int $userId
      *   User account identifier for access checks
+     * @return \MakinaCorpus\Umenu\Tree
      */
     final public function buildTree($menuId, $withAccess = false, $userId = null)
     {
-        if ($withAccess && !$userId) {
+        if ($withAccess && null === $userId) {
             throw new \InvalidArgumentException("loading menu with access checks needs the user identifier");
         }
 
