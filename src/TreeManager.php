@@ -66,9 +66,9 @@ class TreeManager
                 if ($previous) {
                     $previous = $this->itemStorage->insertAfter($previous, $child->getNodeId(), $child->getTitle(), $child->getDescription());
                 } else if ($parentId) {
-                    $previous = $this->itemStorage->insertAsChild($parentId, $child->getNodeId(), $child->getTitle(), 0, $child->getDescription());
+                    $previous = $this->itemStorage->insertAsChild($parentId, $child->getNodeId(), $child->getTitle(), $child->getDescription());
                 } else {
-                    $previous = $this->itemStorage->insert($menuId, $child->getNodeId(), $child->getTitle(), 0, $child->getDescription());
+                    $previous = $this->itemStorage->insert($menuId, $child->getNodeId(), $child->getTitle(), $child->getDescription());
                 }
 
                 $this->cloneTreeRecursion($menuId, $child, $previous);

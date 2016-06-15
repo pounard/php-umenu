@@ -210,4 +210,171 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
 
         $this->assertSame($expected, $actual);
     }
+
+    public function testMove()
+    {
+        $provider = $this->getTreeProvider();
+        $menuStorage = $this->getMenuStorage();
+        $itemStorage = $this->getItemStorage();
+
+        $site = $this->createDrupalSite();
+        $menu = $menuStorage->create($this->menus[] = uniqid('test_item_storage'));
+        $menuId = $menu['id'];
+
+        /*
+         * Build:
+         *   a
+         *   a/1
+         *   a/2
+         *   a/3
+         *   b
+         *   c
+         */
+
+        // INSERT TOP LEVEL
+        $nodeB = $this->createDrupalNode('test', $site);
+        $itemB = $itemStorage->insert($menuId, $nodeB->id(), 'b');
+
+        // INSERT AFTER NO PARENT PUSH OTHERS
+        $nodeC = $this->createDrupalNode('test', $site);
+        $itemC = $itemStorage->insertAfter($itemB, $nodeC->id(), 'c');
+
+        // INSERT BEFORE NO PARENT PUSH OTHERS
+        $nodeA = $this->createDrupalNode('test', $site);
+        $itemA = $itemStorage->insertBefore($itemB, $nodeA->id(), 'a');
+
+        // INSERT CHILD
+        $nodeA2 = $this->createDrupalNode('test', $site);
+        $itemA2 = $itemStorage->insertAsChild($itemA, $nodeA2->id(), 'a2');
+
+        // INSERT CHILD BEFORE PUSH OTHERS
+        $nodeA1 = $this->createDrupalNode('test', $site);
+        $itemA1 = $itemStorage->insertBefore($itemA2, $nodeA1->id(), 'a1');
+
+        // INSERT CHILD AFTER PUSH OTHERS
+        $nodeA3 = $this->createDrupalNode('test', $site);
+        $itemA3 = $itemStorage->insertAfter($itemA2, $nodeA3->id(), 'a3');
+
+        // And now, test everything in the right order
+        $tree = $provider->buildTree($menuId, false);
+        $actual = $this->recursiveBuildArray($tree);
+        $expected = [
+            'a.' . $nodeA->id() . '.' . $itemA => [
+                'a1.' . $nodeA1->id() . '.' . $itemA1 => [],
+                'a2.' . $nodeA2->id() . '.' . $itemA2 => [],
+                'a3.' . $nodeA3->id() . '.' . $itemA3 => [],
+            ],
+            'b.' . $nodeB->id() . '.' . $itemB => [],
+            'c.' . $nodeC->id() . '.' . $itemC => [],
+        ];
+        $this->assertSame($expected, $actual);
+
+        /*
+         * Go for some moves:
+         *   a
+         *   a/1
+         *   a/2
+         *   a/3
+         *   b
+         *   c
+         */
+
+        // Reparent 'b' under 'a', should be last
+        $itemStorage->moveAsChild($itemB, $itemA);
+
+        $tree = $provider->buildTree($menuId, false);
+        $actual = $this->recursiveBuildArray($tree);
+        $expected = [
+            'a.' . $nodeA->id() . '.' . $itemA => [
+                'a1.' . $nodeA1->id() . '.' . $itemA1 => [],
+                'a2.' . $nodeA2->id() . '.' . $itemA2 => [],
+                'a3.' . $nodeA3->id() . '.' . $itemA3 => [],
+                'b.'  . $nodeB->id()  . '.' . $itemB => [],
+            ],
+            'c.' . $nodeC->id() . '.' . $itemC => [],
+        ];
+        $this->assertSame($expected, $actual);
+
+        // Move 'c' after 'a/2'
+        $itemStorage->moveAfter($itemC, $itemA2);
+
+        $tree = $provider->buildTree($menuId, false);
+        $actual = $this->recursiveBuildArray($tree);
+        $expected = [
+            'a.' . $nodeA->id() . '.' . $itemA => [
+                'a1.' . $nodeA1->id() . '.' . $itemA1 => [],
+                'a2.' . $nodeA2->id() . '.' . $itemA2 => [],
+                'c.'  . $nodeC->id()  . '.' . $itemC => [],
+                'a3.' . $nodeA3->id() . '.' . $itemA3 => [],
+                'b.'  . $nodeB->id()  . '.' . $itemB => [],
+            ],
+        ];
+        $this->assertSame($expected, $actual);
+
+        // Move 'a3' to root
+        $itemStorage->moveToRoot($itemA3);
+
+        $tree = $provider->buildTree($menuId, false);
+        $actual = $this->recursiveBuildArray($tree);
+        $expected = [
+            'a.' . $nodeA->id() . '.' . $itemA => [
+                'a1.' . $nodeA1->id() . '.' . $itemA1 => [],
+                'a2.' . $nodeA2->id() . '.' . $itemA2 => [],
+                'c.'  . $nodeC->id()  . '.' . $itemC => [],
+                'b.'  . $nodeB->id()  . '.' . $itemB => [],
+            ],
+            'a3.' . $nodeA3->id() . '.' . $itemA3 => [],
+        ];
+        $this->assertSame($expected, $actual);
+
+        // Move 'a2' before 'a'
+        $itemStorage->moveBefore($itemA2, $itemA);
+
+        $tree = $provider->buildTree($menuId, false);
+        $actual = $this->recursiveBuildArray($tree);
+        $expected = [
+            'a2.' . $nodeA2->id() . '.' . $itemA2 => [],
+            'a.'  . $nodeA->id()  . '.' . $itemA => [
+                'a1.' . $nodeA1->id() . '.' . $itemA1 => [],
+                'c.'  . $nodeC->id()  . '.' . $itemC => [],
+                'b.'  . $nodeB->id()  . '.' . $itemB => [],
+            ],
+            'a3.' . $nodeA3->id() . '.' . $itemA3 => [],
+        ];
+        $this->assertSame($expected, $actual);
+
+        // Move 'c' under 'a3'
+        $itemStorage->moveAsChild($itemC, $itemA3);
+
+        $tree = $provider->buildTree($menuId, false);
+        $actual = $this->recursiveBuildArray($tree);
+        $expected = [
+            'a2.' . $nodeA2->id() . '.' . $itemA2 => [],
+            'a.'  . $nodeA->id()  . '.' . $itemA => [
+                'a1.' . $nodeA1->id() . '.' . $itemA1 => [],
+                'b.'  . $nodeB->id()  . '.' . $itemB => [],
+            ],
+            'a3.' . $nodeA3->id() . '.' . $itemA3 => [
+                'c.'  . $nodeC->id()  . '.' . $itemC => [],
+            ],
+        ];
+        $this->assertSame($expected, $actual);
+
+        // Move 'a' before 'c'
+        $itemStorage->moveBefore($itemA, $itemC);
+
+        $tree = $provider->buildTree($menuId, false);
+        $actual = $this->recursiveBuildArray($tree);
+        $expected = [
+            'a2.' . $nodeA2->id() . '.' . $itemA2 => [],
+            'a3.' . $nodeA3->id() . '.' . $itemA3 => [
+                'a.'  . $nodeA->id()  . '.' . $itemA => [
+                    'a1.' . $nodeA1->id() . '.' . $itemA1 => [],
+                    'b.'  . $nodeB->id()  . '.' . $itemB => [],
+                ],
+                'c.'  . $nodeC->id()  . '.' . $itemC => [],
+            ],
+        ];
+        $this->assertSame($expected, $actual);
+    }
 }

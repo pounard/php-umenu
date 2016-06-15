@@ -38,7 +38,7 @@ class LegacyItemStorage implements ItemStorageInterface
     protected function validateItem($otherItemId, $title, $nodeId)
     {
         if (empty($otherItemId)) {
-            throw new \InvalidArgumentException("Item identifier cannot be empty");
+            throw new \InvalidArgumentException("Relative item identifier cannot be empty");
         }
         if (empty($title)) {
             throw new \InvalidArgumentException("Title cannot be empty");
@@ -68,12 +68,50 @@ class LegacyItemStorage implements ItemStorageInterface
         return array_values($data);
     }
 
+    protected function validateMove($itemId, $otherItemId)
+    {
+        if (empty($otherItemId)) {
+            throw new \InvalidArgumentException("Relative item identifier cannot be empty");
+        }
+        if (empty($itemId)) {
+            throw new \InvalidArgumentException("Item identifier cannot be empty");
+        }
+
+        $exists = (bool)$this->db->query("SELECT 1 FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
+
+        if (!$exists) {
+            throw new \InvalidArgumentException(sprintf("Item %d does not exist", $itemId));
+        }
+
+        // Find parent identifier
+        $data = $this
+            ->db
+            ->query("
+                    SELECT m.id, m.name, l.plid, l.weight
+                    FROM {menu_links} l
+                    JOIN {umenu} m ON m.name = l.menu_name
+                    WHERE l.mlid = ?
+                ",
+                [$otherItemId]
+            )
+            ->fetchAssoc()
+        ;
+
+        if (!$data) {
+            throw new \InvalidArgumentException(sprintf("Item %d does not exist", $otherItemId));
+        }
+
+        return array_values($data);
+    }
+
     /**
      * {@inheritdoc}
      */
-    public function insert($menuId, $nodeId, $title, $weight = 0, $description = null)
+    public function insert($menuId, $nodeId, $title, $description = null)
     {
         $menu = $this->validateMenu($menuId, $title, $nodeId);
+
+        $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE menu_name = ? AND plid = 0", [$menu['name']])->fetchField();
 
         $link = [
             'menu_name'  => $menu['name'],
@@ -93,9 +131,11 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insertAsChild($otherItemId, $nodeId, $title, $weight = 0, $description = null)
+    public function insertAsChild($otherItemId, $nodeId, $title, $description = null)
     {
         list(, $menuName) = $this->validateItem($otherItemId, $title, $nodeId);
+
+        $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = ?", [$otherItemId])->fetchField();
 
         $link = [
             'menu_name'  => $menuName,
@@ -186,7 +226,7 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function update($itemId, $parentId = null, $title = null, $weight = 0, $description = null)
+    public function update($itemId, $nodeId = null, $title = null, $description = null)
     {
         $exists = (bool)$this->db->query("SELECT 1 FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
 
@@ -197,18 +237,115 @@ class LegacyItemStorage implements ItemStorageInterface
         $item = menu_link_load($itemId);
         $existing = $item;
 
-        if (null !== $parentId) {
-            $item['plid'] = $parentId;
+        if (null !== $nodeId) {
+            $item['link_path'] = 'node/' . $nodeId;
         }
         if (null !== $title) {
             $item['link_title'] = $title;
         }
-        if (null !== $weight) {
-            $item['weight'] = $weight;
-        }
         if (null !== $description) {
             $item['description'] = $description;
         }
+
+        if (!menu_link_save($item, $existing)) {
+            throw new \RuntimeException("Could not save item");
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function moveAsChild($itemId, $otherItemId)
+    {
+        $this->validateMove($itemId, $otherItemId);
+
+        $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = ?", [$otherItemId])->fetchField();
+
+        $item = menu_link_load($itemId);
+        $existing = $item;
+        $item['weight'] = $weight;
+        $item['plid'] = $otherItemId;
+
+        if (!menu_link_save($item, $existing)) {
+            throw new \RuntimeException("Could not save item");
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function moveToRoot($itemId)
+    {
+        $menuName = (string)$this->db->query("SELECT menu_name FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
+
+        if (!$menuName) {
+            throw new \InvalidArgumentException(sprintf("Item %d does not exist", $itemId));
+        }
+
+        $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = 0 AND menu_name = ?", [$menuName])->fetchField();
+
+        $item = menu_link_load($itemId);
+        $existing = $item;
+        $item['weight'] = $weight;
+        $item['plid'] = 0;
+
+        if (!menu_link_save($item, $existing)) {
+            throw new \RuntimeException("Could not save item");
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function moveAfter($itemId, $otherItemId)
+    {
+        list(,, $parentId, $weight) = $this->validateMove($itemId, $otherItemId);
+
+        $this
+            ->db
+            ->query(
+                "UPDATE {menu_links} l SET l.weight = l.weight + 2 WHERE l.plid = :plid AND l.mlid <> :mlid AND weight >= :neww",
+                [
+                    ':mlid' => $otherItemId,
+                    ':plid' => $parentId,
+                    ':neww' => $weight,
+                ]
+            )
+        ;
+
+        $item = menu_link_load($itemId);
+        $existing = $item;
+        $item['weight'] = $weight + 1;
+        $item['plid'] = $parentId;
+
+        if (!menu_link_save($item, $existing)) {
+            throw new \RuntimeException("Could not save item");
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function moveBefore($itemId, $otherItemId)
+    {
+        list(,, $parentId, $weight) = $this->validateMove($itemId, $otherItemId);
+
+        $this
+            ->db
+            ->query(
+                "UPDATE {menu_links} l SET l.weight = l.weight - 2 WHERE l.plid = :plid AND l.mlid <> :mlid AND weight <= :neww",
+                [
+                    ':mlid' => $otherItemId,
+                    ':plid' => $parentId,
+                    ':neww' => $weight,
+                ]
+            )
+        ;
+
+        $item = menu_link_load($itemId);
+        $existing = $item;
+        $item['weight'] = $weight - 1;
+        $item['plid'] = $parentId;
 
         if (!menu_link_save($item, $existing)) {
             throw new \RuntimeException("Could not save item");
