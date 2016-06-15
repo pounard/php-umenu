@@ -5,7 +5,7 @@ namespace MakinaCorpus\Umenu;
 /**
  * Uses Drupal core menu_links table to load menu items.
  */
-class DrupalTreeProvider extends AbstractTreeProvider
+class LegacyTreeProvider extends AbstractTreeProvider
 {
     /**
      * Load tree items

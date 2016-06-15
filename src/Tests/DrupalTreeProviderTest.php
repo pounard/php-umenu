@@ -5,11 +5,11 @@ namespace MakinaCorpus\Umenu\Tests;
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
 use MakinaCorpus\Umenu\AbstractTreeProvider;
 use MakinaCorpus\Umenu\DrupalMenuStorage;
-use MakinaCorpus\Umenu\DrupalTreeProvider;
+use MakinaCorpus\Umenu\LegacyTreeProvider;
 use MakinaCorpus\Umenu\MenuStorageInterface;
 use MakinaCorpus\Ucms\Site\Tests\SiteTestTrait;
 
-class DrupalTreeProviderTest extends AbstractDrupalTest
+class LegacyTreeProviderTest extends AbstractDrupalTest
 {
     // FIXME
     use SiteTestTrait;
@@ -31,7 +31,7 @@ class DrupalTreeProviderTest extends AbstractDrupalTest
      */
     protected function getTreeProvider()
     {
-        return new DrupalTreeProvider($this->getDatabaseConnection());
+        return new LegacyTreeProvider($this->getDatabaseConnection());
     }
 
     /**

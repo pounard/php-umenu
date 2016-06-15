@@ -16,7 +16,7 @@ services:
   # menu_links table to load menu items
   umenu.tree_provider.drupal:
     public: false
-    class: MakinaCorpus\Umenu\DrupalTreeProvider
+    class: MakinaCorpus\Umenu\LegacyTreeProvider
     arguments: ['@database']
 
   # Change this to change the primary tree builder
