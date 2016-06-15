@@ -14,19 +14,42 @@ class Tree extends TreeBase
 {
     private $topLevel = [];
     private $perNode = [];
+    private $menuId;
+    private $menuName;
 
     /**
      * Default constructor
      *
      * @param TreeItem[] $items
+     * @param int $menuId
      */
-    public function __construct($items = null)
+    public function __construct($items = null, $menuId = null)
     {
         if ($items) {
             $this->setItems($items);
         }
 
-        $this->hasAccess = true;
+        $this->menuId = $menuId;
+    }
+
+    /**
+     * Get menu identifier
+     *
+     * @return id
+     */
+    public function getMenuId()
+    {
+        return $this->menuId;
+    }
+
+    /**
+     * Get menu name
+     *
+     * @return string
+     */
+    public function getMenuName()
+    {
+        return $this->menuName;
     }
 
     /**

@@ -34,7 +34,11 @@ class DrupalMenuStorage implements MenuStorageInterface
      */
     public function load($name)
     {
-        $list = $this->loadMultiple([$name]);
+        if (is_numeric($name)) {
+            $list = $this->loadWithConditions(['id' => $name]);
+        } else {
+            $list = $this->loadMultiple([$name]);
+        }
 
         if (!$list) {
             throw new \InvalidArgumentException(sprintf("%s: menu does not exist", $name));
@@ -146,6 +150,8 @@ class DrupalMenuStorage implements MenuStorageInterface
         if (empty($values['title'])) {
             $values['title'] = $name;
         }
+
+        unset($values['id']);
 
         $this
             ->db

@@ -104,6 +104,6 @@ abstract class AbstractTreeProvider
             }
         }
 
-        return new Tree($items);
+        return new Tree($items, $menuId);
     }
 }

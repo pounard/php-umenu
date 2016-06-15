@@ -24,8 +24,11 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
             foreach ($this->menus as $name) {
                 $this->getDatabaseConnection()->query("DELETE FROM {umenu} WHERE name = ?", [$name]);
             }
-            $this->getDatabaseConnection()->query("DELETE FROM {menu_links} WHERE menu_name NOT IN (SELECT name FROM {umenu})");
         }
+
+        $this->getDatabaseConnection()->query("DELETE FROM {menu_links} WHERE menu_name NOT IN (SELECT name FROM {umenu})");
+
+        $this->eraseAllData();
 
         parent::tearDown();
     }
@@ -64,7 +67,7 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
 
         if ($item->hasChildren()) {
             foreach ($item->getChildren() as $child) {
-                $ret[$child->getTitle() . '.' . $child->getNodeId()] = $this->recursiveBuildArrayWithoutId($child);
+                $ret[$child->getTitle() . '.' . $child->getNodeId() . '.' . $child->getSiteId()] = $this->recursiveBuildArrayWithoutId($child);
             }
         }
 
@@ -158,24 +161,51 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
          * Go for clone test, now that we do have something
          */
 
-        $otherMenu = $menuStorage->create($this->menus[] = uniqid('test_item_storage'));
+        $newSite = $this->createDrupalSite();
+        $otherMenu = $menuStorage->create($this->menus[] = uniqid('test_item_storage'), ['site_id' => $newSite->getId()]);
         $tree = $provider->buildTree($menu['id']);
+        $newSiteId = $newSite->getId();
         $manager = new TreeManager($menuStorage, $itemStorage, $provider, new User());
         $newTree = $manager->cloneTreeIn($otherMenu['id'], $tree);
 
         $actual = $this->recursiveBuildArrayWithoutId($newTree);
         $expected = [
-            'z.' . $nodeZ->id() => [],
-            'a.' . $nodeA->id() => [
-                'a0.' . $nodeA0->id() => [],
-                'a1.' . $nodeA1->id() => [],
-                'a2.' . $nodeA2->id() => [],
-                'a3.' . $nodeA3->id() => [],
-                'a4.' . $nodeA4->id() => [],
+            'z.' . $nodeZ->id() . '.' . $newSiteId => [],
+            'a.' . $nodeA->id() . '.' . $newSiteId => [
+                'a0.' . $nodeA0->id() . '.' . $newSiteId => [],
+                'a1.' . $nodeA1->id() . '.' . $newSiteId => [],
+                'a2.' . $nodeA2->id() . '.' . $newSiteId => [],
+                'a3.' . $nodeA3->id() . '.' . $newSiteId => [],
+                'a4.' . $nodeA4->id() . '.' . $newSiteId => [],
             ],
-            'b.' . $nodeB->id() => [],
-            'c.' . $nodeC->id() => [],
-            'd.' . $nodeD->id() => [],
+            'b.' . $nodeB->id() . '.' . $newSiteId => [],
+            'c.' . $nodeC->id() . '.' . $newSiteId => [],
+            'd.' . $nodeD->id() . '.' . $newSiteId => [],
+        ];
+
+        $this->assertSame($expected, $actual);
+
+        /*
+         * And another clone test
+         */
+
+        $otherSite = $this->createDrupalSite();
+        $otherSiteId = $otherSite->getId();
+        $otherTree = $manager->cloneMenu($menuId, $otherSite->getId(), $this->menus[] = uniqid('test_item_storage'));
+
+        $actual = $this->recursiveBuildArrayWithoutId($otherTree);
+        $expected = [
+            'z.' . $nodeZ->id() . '.' . $otherSiteId => [],
+            'a.' . $nodeA->id() . '.' . $otherSiteId => [
+                'a0.' . $nodeA0->id() . '.' . $otherSiteId => [],
+                'a1.' . $nodeA1->id() . '.' . $otherSiteId => [],
+                'a2.' . $nodeA2->id() . '.' . $otherSiteId => [],
+                'a3.' . $nodeA3->id() . '.' . $otherSiteId => [],
+                'a4.' . $nodeA4->id() . '.' . $otherSiteId => [],
+            ],
+            'b.' . $nodeB->id() . '.' . $otherSiteId => [],
+            'c.' . $nodeC->id() . '.' . $otherSiteId => [],
+            'd.' . $nodeD->id() . '.' . $otherSiteId => [],
         ];
 
         $this->assertSame($expected, $actual);

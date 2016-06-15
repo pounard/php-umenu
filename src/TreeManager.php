@@ -6,19 +6,19 @@ use Drupal\Core\Session\AccountInterface;
 
 class TreeManager
 {
-    private $storage;
+    private $menuStorage;
     private $itemStorage;
     private $provider;
     private $currentUser;
     private $cache = [];
 
     public function __construct(
-        MenuStorageInterface $storage,
+        MenuStorageInterface $menuStorage,
         ItemStorageInterface $itemStorage,
         AbstractTreeProvider $provider,
         AccountInterface $currentUser
     ) {
-        $this->storage = $storage;
+        $this->menuStorage = $menuStorage;
         $this->itemStorage = $itemStorage;
         $this->provider = $provider;
         $this->currentUser = $currentUser;
@@ -37,7 +37,7 @@ class TreeManager
      */
     public function getMenuStorage()
     {
-        return $this->storage;
+        return $this->menuStorage;
     }
 
     /**
@@ -77,6 +77,25 @@ class TreeManager
     }
 
     /**
+     * Clone full menu into a new menu within the given site
+     *
+     * @param int $menuId
+     * @param int $siteId
+     * @param string $name
+     *
+     * @return Tree
+     *   Newly created tree
+     */
+    public function cloneMenu($menuId, $siteId, $name)
+    {
+        $source = $this->menuStorage->load($menuId);
+        $source['site_id'] = $siteId;
+        $target = $this->menuStorage->create($name, $source);
+
+        return $this->cloneTreeIn($target['id'], $this->buildTree($menuId));
+    }
+
+    /**
      * Clone full tree in given menu
      *
      * This is the default implementation, but the TreeProvider might implement
@@ -112,7 +131,7 @@ class TreeManager
     public function buildTree($menuId, $withAccess = false)
     {
         if (!is_numeric($menuId)) {
-            $menuId = $this->storage->load($menuId)['id'];
+            $menuId = $this->menuStorage->load($menuId)['id'];
         }
 
         if (isset($this->cache[$menuId][(int)$withAccess])) {

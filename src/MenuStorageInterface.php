@@ -13,7 +13,8 @@ interface MenuStorageInterface
     /**
      * Load a single menu definition
      *
-     * @param string $name
+     * @param int|string $name
+     *   If int is provided, it's a menu identifier, else it's a menu name
      *
      * @return string[]
      *   Table row and data, if schema has been altered, there will be all data
