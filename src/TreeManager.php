@@ -27,6 +27,14 @@ class TreeManager
     }
 
     /**
+     * @return MenuStorageInterface
+     */
+    public function getMenuStorage()
+    {
+        return $this->storage;
+    }
+
+    /**
      * Alias of AbstractTreeProvider::buildTree()
      *
      * @param int|string $menuId
@@ -38,7 +46,7 @@ class TreeManager
      */
     public function buildTree($menuId, $withAccess = false)
     {
-        if (is_string($menuId)) {
+        if (!is_numeric($menuId)) {
             $menuId = $this->storage->load($menuId)['id'];
         }
 

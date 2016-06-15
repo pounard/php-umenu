@@ -41,9 +41,15 @@ function umenu_theme() {
 /**
  * Implements template_preprocess_HOOK().
  */
-function template_preprocess_umenu(&$variables) {
+function template_preprocess_umenu(&$variables, $hook) {
   if (isset($variables['name'])) {
     $variables['theme_hook_suggestions'][] = 'umenu__' . str_replace('-', '_', $variables['name']);
+  }
+  if ($hook !== $variables['theme_hook_original']) {
+    $variables['theme_hook_suggestions'][] = $variables['theme_hook_original'];
+    if (isset($variables['name'])) {
+      $variables['theme_hook_suggestions'][] = $variables['theme_hook_original'] . '__' . str_replace('-', '_', $variables['name']);
+    }
   }
   $variables['current'] = null;
   if ($node = menu_get_object()) {
