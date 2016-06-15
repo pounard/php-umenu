@@ -143,6 +143,9 @@ class DrupalMenuStorage implements MenuStorageInterface
         }
 
         $values['name'] = $name;
+        if (empty($values['title'])) {
+            $values['title'] = $name;
+        }
 
         $this
             ->db

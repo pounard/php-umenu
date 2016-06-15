@@ -12,7 +12,7 @@
  * @deprecated
  */
 function umenu_get_storage() {
-  return \Drupal::service('umenu.storage');
+  return \Drupal::service('umenu.menu_storage');
 }
 
 /**

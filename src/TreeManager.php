@@ -7,13 +7,19 @@ use Drupal\Core\Session\AccountInterface;
 class TreeManager
 {
     private $storage;
+    private $itemStorage;
     private $provider;
     private $currentUser;
     private $cache = [];
 
-    public function __construct(MenuStorageInterface $storage, AbstractTreeProvider $provider, AccountInterface $currentUser)
-    {
+    public function __construct(
+        MenuStorageInterface $storage,
+        ItemStorageInterface $itemStorage,
+        AbstractTreeProvider $provider,
+        AccountInterface $currentUser
+    ) {
         $this->storage = $storage;
+        $this->itemStorage = $itemStorage;
         $this->provider = $provider;
         $this->currentUser = $currentUser;
     }
@@ -32,6 +38,14 @@ class TreeManager
     public function getMenuStorage()
     {
         return $this->storage;
+    }
+
+    /**
+     * @return ItemStorageInterface
+     */
+    public function getItemStorage()
+    {
+        return $this->itemStorage;
     }
 
     /**

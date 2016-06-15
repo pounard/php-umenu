@@ -3,14 +3,24 @@ services:
   # Default database driven storage, it must be always in use, even if
   # proxified by another implementation because database is and will
   # remain the primary storage
-  umenu.storage.drupal:
+  umenu.menu_storage.drupal:
     public: false
     class: MakinaCorpus\Umenu\DrupalMenuStorage
     arguments: ["@database", "@event_dispatcher"]
 
   # Change this to change the primary storage
-  umenu.storage:
-    alias: umenu.storage.drupal
+  umenu.menu_storage:
+    alias: umenu.menu_storage.drupal
+
+  # Default Drupal core driven item storage
+  umenu.item_storage.lefacy:
+    public: false
+    class: MakinaCorpus\Umenu\LegacyItemStorage
+    arguments: ["@database"]
+
+  # Change this to change the primary storage
+  umenu.item_storage:
+    alias: umenu.item_storage.lefacy
 
   # Default tree builder, it will use the Drupal database and the core
   # menu_links table to load menu items
@@ -25,4 +35,4 @@ services:
 
   umenu.manager:
     class: MakinaCorpus\Umenu\TreeManager
-    arguments: ['@umenu.storage', '@umenu.tree_provider', '@current_user']
+    arguments: ['@umenu.menu_storage', '@umenu.item_storage', '@umenu.tree_provider', '@current_user']
