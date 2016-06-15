@@ -2,23 +2,28 @@
 
 namespace MakinaCorpus\Umenu\Tests;
 
+use Drupal\user\User;
+
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
 use MakinaCorpus\Umenu\AbstractTreeProvider;
 use MakinaCorpus\Umenu\ItemStorageInterface;
 use MakinaCorpus\Umenu\MenuStorageInterface;
 use MakinaCorpus\Umenu\TreeBase;
 use MakinaCorpus\Ucms\Site\Tests\SiteTestTrait;
+use MakinaCorpus\Umenu\TreeManager;
 
 abstract class AbstractItemStorageTest extends AbstractDrupalTest
 {
     use SiteTestTrait; // @todo
 
-    private $menuName;
+    private $menus;
 
     protected function tearDown()
     {
-        if ($this->menuName) {
-            $this->getDatabaseConnection()->query("DELETE FROM {umenu} WHERE name = ?", [$this->menuName]);
+        if ($this->menus) {
+            foreach ($this->menus as $name) {
+                $this->getDatabaseConnection()->query("DELETE FROM {umenu} WHERE name = ?", [$name]);
+            }
             $this->getDatabaseConnection()->query("DELETE FROM {menu_links} WHERE menu_name NOT IN (SELECT name FROM {umenu})");
         }
 
@@ -53,13 +58,27 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
         return $ret;
     }
 
+    protected function recursiveBuildArrayWithoutId(TreeBase $item)
+    {
+        $ret = [];
+
+        if ($item->hasChildren()) {
+            foreach ($item->getChildren() as $child) {
+                $ret[$child->getTitle() . '.' . $child->getNodeId()] = $this->recursiveBuildArrayWithoutId($child);
+            }
+        }
+
+        return $ret;
+    }
+
     public function testAll()
     {
-        $treeProvider = $this->getTreeProvider();
+        $provider = $this->getTreeProvider();
+        $menuStorage = $this->getMenuStorage();
         $itemStorage = $this->getItemStorage();
 
         $site = $this->createDrupalSite();
-        $menu = $this->getMenuStorage()->create($this->menuName = uniqid('test_item_storage'));
+        $menu = $menuStorage->create($this->menus[] = uniqid('test_item_storage'));
         $menuId = $menu['id'];
 
         /*
@@ -117,7 +136,7 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
         $itemA3 = $itemStorage->insertAfter($itemA2, $nodeA3->id(), 'a3');
 
         // And now, test everything in the right order
-        $tree = $treeProvider->buildTree($menuId, false);
+        $tree = $provider->buildTree($menuId, false);
         $actual = $this->recursiveBuildArray($tree);
         $expected = [
             'z.' . $nodeZ->id() . '.' . $itemZ => [],
@@ -131,6 +150,32 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
             'b.' . $nodeB->id() . '.' . $itemB => [],
             'c.' . $nodeC->id() . '.' . $itemC => [],
             'd.' . $nodeD->id() . '.' . $itemD => [],
+        ];
+
+        $this->assertSame($expected, $actual);
+
+        /*
+         * Go for clone test, now that we do have something
+         */
+
+        $otherMenu = $menuStorage->create($this->menus[] = uniqid('test_item_storage'));
+        $tree = $provider->buildTree($menu['id']);
+        $manager = new TreeManager($menuStorage, $itemStorage, $provider, new User());
+        $newTree = $manager->cloneTreeIn($otherMenu['id'], $tree);
+
+        $actual = $this->recursiveBuildArrayWithoutId($newTree);
+        $expected = [
+            'z.' . $nodeZ->id() => [],
+            'a.' . $nodeA->id() => [
+                'a0.' . $nodeA0->id() => [],
+                'a1.' . $nodeA1->id() => [],
+                'a2.' . $nodeA2->id() => [],
+                'a3.' . $nodeA3->id() => [],
+                'a4.' . $nodeA4->id() => [],
+            ],
+            'b.' . $nodeB->id() => [],
+            'c.' . $nodeC->id() => [],
+            'd.' . $nodeD->id() => [],
         ];
 
         $this->assertSame($expected, $actual);

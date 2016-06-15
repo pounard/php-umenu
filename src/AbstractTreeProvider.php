@@ -37,6 +37,30 @@ abstract class AbstractTreeProvider
     }
 
     /**
+     * Can this implementation clone trees
+     *
+     * @return boolean
+     */
+    public function mayCloneTree()
+    {
+        return false;
+    }
+
+    /**
+     * Clone full tree in given menu
+     *
+     * @param int $menuId
+     * @param Tree $tree
+     *
+     * @return Tree
+     *   Newly created tree
+     */
+    public function cloneTreeIn($menuId, Tree $tree)
+    {
+        throw new \LogicException("This tree provider implementation cannot clone trees");
+    }
+
+    /**
      * Build tree
      *
      * @param int $menuId

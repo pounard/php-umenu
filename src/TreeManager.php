@@ -49,6 +49,57 @@ class TreeManager
     }
 
     /**
+     * Internal recursion for clone tree
+     *
+     * @param int $menuId
+     * @param TreeBase $item
+     * @param TreeBase $parent
+     */
+    private function cloneTreeRecursion($menuId, TreeBase $item, $parentId = null)
+    {
+        if ($item->hasChildren()) {
+
+            $previous = null;
+
+            foreach ($item->getChildren() as $child) {
+
+                if ($previous) {
+                    $previous = $this->itemStorage->insertAfter($previous, $child->getNodeId(), $child->getTitle(), $child->getDescription());
+                } else if ($parentId) {
+                    $previous = $this->itemStorage->insertAsChild($parentId, $child->getNodeId(), $child->getTitle(), 0, $child->getDescription());
+                } else {
+                    $previous = $this->itemStorage->insert($menuId, $child->getNodeId(), $child->getTitle(), 0, $child->getDescription());
+                }
+
+                $this->cloneTreeRecursion($menuId, $child, $previous);
+            }
+        }
+    }
+
+    /**
+     * Clone full tree in given menu
+     *
+     * This is the default implementation, but the TreeProvider might implement
+     * it in a custom and more efficient way if possible.
+     *
+     * @param int $menuId
+     * @param Tree $tree
+     *
+     * @return Tree
+     *   Newly created tree
+     */
+    public function cloneTreeIn($menuId, Tree $tree)
+    {
+        if ($this->provider->mayCloneTree()) {
+            return $this->provider->cloneTreeIn($menuId, $tree);
+        }
+
+        $this->cloneTreeRecursion($menuId, $tree);
+
+        return $this->provider->buildTree($menuId, false);
+    }
+
+    /**
      * Alias of AbstractTreeProvider::buildTree()
      *
      * @param int|string $menuId
