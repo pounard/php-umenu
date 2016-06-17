@@ -3,7 +3,7 @@
 namespace MakinaCorpus\Umenu\Tests;
 
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
-use MakinaCorpus\Umenu\AbstractTreeProvider;
+use MakinaCorpus\Umenu\TreeProviderInterface;
 use MakinaCorpus\Umenu\DrupalMenuStorage;
 use MakinaCorpus\Umenu\LegacyTreeProvider;
 use MakinaCorpus\Umenu\MenuStorageInterface;
@@ -27,7 +27,7 @@ class LegacyTreeProviderTest extends AbstractDrupalTest
     }
 
     /**
-     * @return AbstractTreeProvider
+     * @return TreeProviderInterface
      */
     protected function getTreeProvider()
     {

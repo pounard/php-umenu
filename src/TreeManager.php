@@ -15,7 +15,7 @@ class TreeManager
     public function __construct(
         MenuStorageInterface $menuStorage,
         ItemStorageInterface $itemStorage,
-        AbstractTreeProvider $provider,
+        TreeProviderInterface $provider,
         AccountInterface $currentUser
     ) {
         $this->menuStorage = $menuStorage;
@@ -25,7 +25,7 @@ class TreeManager
     }
 
     /**
-     * @return AbstractTreeProvider
+     * @return TreeProviderInterface
      */
     public function getTreeProvider()
     {
@@ -142,7 +142,7 @@ class TreeManager
     }
 
     /**
-     * Alias of AbstractTreeProvider::buildTree()
+     * Alias of TreeProviderInterface::buildTree()
      *
      * @param int|string $menuId
      *   Menu name or menu identifier

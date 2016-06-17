@@ -5,7 +5,7 @@ namespace MakinaCorpus\Umenu;
 /**
  * Loads trees.
  */
-abstract class AbstractTreeProvider
+abstract class AbstractTreeProvider implements TreeProviderInterface
 {
     private $db;
 

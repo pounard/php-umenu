@@ -5,7 +5,7 @@ namespace MakinaCorpus\Umenu\Tests;
 use Drupal\user\User;
 
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
-use MakinaCorpus\Umenu\AbstractTreeProvider;
+use MakinaCorpus\Umenu\TreeProviderInterface;
 use MakinaCorpus\Umenu\ItemStorageInterface;
 use MakinaCorpus\Umenu\MenuStorageInterface;
 use MakinaCorpus\Umenu\TreeBase;
@@ -44,7 +44,7 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
     abstract protected function getMenuStorage();
 
     /**
-     * @return AbstractTreeProvider
+     * @return TreeProviderInterface
      */
     abstract protected function getTreeProvider();
 
