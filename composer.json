@@ -23,7 +23,7 @@
     "require" : {
         "makinacorpus/drupal-plusql" : "^1.0.0",
         "makinacorpus/drupal-sf-dic" : "^3.0",
-        "makinacorpus/drupal-ucms" : "1.0.*"
+        "makinacorpus/drupal-ucms" : "1.*"
     },
     "minimum-stability": "dev"
 }
