@@ -165,6 +165,16 @@ class Tree extends TreeBase
     }
 
     /**
+     * Count the number of children
+     *
+     * @return int
+     */
+    public function getChildCount()
+    {
+        return count($this->topLevel);
+    }
+
+    /**
      * Get all items in a flattened array
      *
      * @return TreeItem[]

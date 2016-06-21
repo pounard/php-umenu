@@ -32,4 +32,14 @@ class TreeBase
     {
         return !empty($this->children);
     }
+
+    /**
+     * Count the number of children
+     *
+     * @return int
+     */
+    public function getChildCount()
+    {
+        return count($this->children);
+    }
 }
