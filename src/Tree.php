@@ -61,13 +61,22 @@ class Tree extends TreeBase
     public function setItems($items, $relocateOrphans = false)
     {
         // Order is kept from the function input, provider must order them
-        // correctly prior to us, weight should not matter to this algorithm
-        foreach ($items as $item) {
+        // correctly prior to us, weight should not matter to this algorithm.
 
+        // Please note, and this is very important, that it is mandatory to
+        // register first all children, because they are supposed to be sorted
+        // by weight first, then parent, the second foreach will deal with
+        // parenting, but this one will ensure all parents are visible for the
+        // second!
+        foreach ($items as $item) {
             if (!$item instanceof TreeItem) {
                 throw new \InvalidArgumentException("items must be instances of \MakinaCorpus\Umenu\TreeItem");
             }
 
+            $this->children[$item->getId()] = $item;
+        }
+
+        foreach ($this->children as $item) {
             $parentId = $item->getParentId();
 
             if (!$parentId) {
@@ -78,6 +87,7 @@ class Tree extends TreeBase
                 } else {
                     // Item is orphan and we don't relocate orphan, we must
                     // exclude this item from tree
+                    unset($this->children[$item->getId()]);
                     continue;
                 }
             } else {
@@ -87,7 +97,6 @@ class Tree extends TreeBase
                 $this->children[$parentId]->children[$item->getId()] = $item;
             }
 
-            $this->children[$item->getId()] = $item;
 
             // And we need to be able to fetch those per node too.
             $nodeId = $item->getNodeId();
