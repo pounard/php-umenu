@@ -148,10 +148,13 @@ class TreeManager
      *   Menu name or menu identifier
      * @param boolean $withAccess
      *   If set to true, menu will only container visible items for current user
+     * @param boolean $relocateOrphans
+     *   When a parent is not visible nor accessible, should this tree
+     *   relocate children to the menu root
      *
      * @return \MakinaCorpus\Umenu\Tree
      */
-    public function buildTree($menuId, $withAccess = false, $resetCache = false)
+    public function buildTree($menuId, $withAccess = false, $relocateOrphans = false, $resetCache = false)
     {
         if (!is_numeric($menuId)) {
             $menuId = $this->menuStorage->load($menuId)['id'];
@@ -163,7 +166,7 @@ class TreeManager
 
         return $this->cache[$menuId][(int)$withAccess] = $this
             ->getTreeProvider()
-            ->buildTree($menuId, $withAccess, $this->currentUser->id())
+            ->buildTree($menuId, $withAccess, $this->currentUser->id(), $relocateOrphans)
         ;
     }
 }

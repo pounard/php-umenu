@@ -37,9 +37,7 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
     }
 
     /**
-     * Can this implementation clone trees
-     *
-     * @return boolean
+     * @inheritdoc
      */
     public function mayCloneTree()
     {
@@ -47,13 +45,7 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
     }
 
     /**
-     * Clone full tree in given menu
-     *
-     * @param int $menuId
-     * @param Tree $tree
-     *
-     * @return Tree
-     *   Newly created tree
+     * @inheritdoc
      */
     public function cloneTreeIn($menuId, Tree $tree)
     {
@@ -61,17 +53,9 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
     }
 
     /**
-     * Build tree
-     *
-     * @param int $menuId
-     *   Menu identifier
-     * @param boolean $withAccess
-     *   Should this check access when loading tree
-     * @param int $userId
-     *   User account identifier for access checks
-     * @return \MakinaCorpus\Umenu\Tree
+     * @inheritdoc
      */
-    final public function buildTree($menuId, $withAccess = false, $userId = null)
+    final public function buildTree($menuId, $withAccess = false, $userId = null, $relocateOrphans = false)
     {
         if ($withAccess && null === $userId) {
             throw new \InvalidArgumentException("loading menu with access checks needs the user identifier");
@@ -104,6 +88,6 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
             }
         }
 
-        return new Tree($items, $menuId);
+        return new Tree($items, $menuId, $relocateOrphans);
     }
 }

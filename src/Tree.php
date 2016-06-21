@@ -3,12 +3,11 @@
 namespace MakinaCorpus\Umenu;
 
 /**
- * Represents a menu tree, and provide various helpers for manipulating it.
- *
- * A tree in our conception is composed only from nodes.
- *
- * Reason this exists is to abstract ourselves from Drupal menu usage and allow
- * us to completely drop it in the long term.
+ * Represents a menu tree in a specific state, using a projection depending upon
+ * context, variations can be:
+ *   - full tree
+ *   - only items visible to user without orphans
+ *   - only items visible to user with orphans relocated to root
  */
 class Tree extends TreeBase
 {
@@ -22,11 +21,12 @@ class Tree extends TreeBase
      *
      * @param TreeItem[] $items
      * @param int $menuId
+     * @param boolean $relocateOrphans
      */
-    public function __construct($items = null, $menuId = null)
+    public function __construct($items = null, $menuId = null, $relocateOrphans = false)
     {
         if ($items) {
-            $this->setItems($items);
+            $this->setItems($items, $relocateOrphans);
         }
 
         $this->menuId = $menuId;
@@ -56,28 +56,38 @@ class Tree extends TreeBase
      * Set items
      *
      * @param TreeItem[] $items
+     * @param boolean $relocateOrphans
      */
-    public function setItems($items)
+    public function setItems($items, $relocateOrphans = false)
     {
-        // Items must already be ordered
+        // Order is kept from the function input, provider must order them
+        // correctly prior to us, weight should not matter to this algorithm
         foreach ($items as $item) {
+
             if (!$item instanceof TreeItem) {
                 throw new \InvalidArgumentException("items must be instances of \MakinaCorpus\Umenu\TreeItem");
             }
-            $this->children[$item->getId()] = $item;
-        }
 
-        foreach ($this->children as $item) {
             $parentId = $item->getParentId();
 
-            if (!$parentId || !isset($this->children[$parentId])) {
+            if (!$parentId) {
                 $this->topLevel[] = $item;
+            } else if (!isset($this->children[$parentId])) {
+                if ($relocateOrphans) {
+                    $this->topLevel[] = $item;
+                } else {
+                    // Item is orphan and we don't relocate orphan, we must
+                    // exclude this item from tree
+                    continue;
+                }
             } else {
                 // Build the tree by adding the child to its parent, this is
                 // allowed because both this class and the TreeItem class are
                 // extending the TreeBase class, and properties are protected.
                 $this->children[$parentId]->children[$item->getId()] = $item;
             }
+
+            $this->children[$item->getId()] = $item;
 
             // And we need to be able to fetch those per node too.
             $nodeId = $item->getNodeId();

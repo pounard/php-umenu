@@ -58,6 +58,49 @@ class LegacyTreeProviderTest extends AbstractDrupalTest
         return $this->menuLinks[$name] = menu_link_save($item);
     }
 
+    public function testOrphanReallocation()
+    {
+        $this->menuName = uniqid('test');
+
+        $storage  = $this->getMenuStorage();
+        $provider = $this->getTreeProvider();
+        $menu     = $storage->create($this->menuName, ['title' => 'some title']);
+        $menuId   = $menu['id'];
+
+        /*
+         * VISBLE a
+         * NOPE   a/b
+         * VISBLE a/b/c
+         * NOPE   a/d
+         * NOPE   b
+         * VISBLE b/c
+         */
+        $nodeA    = $this->createDrupalNode('test', null, ['status' => 1]);
+        $menuA    = $this->createMenuItem('a', $nodeA);
+        $nodeAB   = $this->createDrupalNode('test', null, ['status' => 0]);
+        $menuAB   = $this->createMenuItem('a/b', $nodeAB, 'a');
+        $nodeAD   = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
+        $menuAD  = $this->createMenuItem('a/d', $nodeAD, 'a');
+        $nodeABC  = $this->createDrupalNode('test', null, ['status' => 1, 'is_global' => 1]);
+        $menuABC  = $this->createMenuItem('a/b/c', $nodeABC, 'a/b');
+        $nodeB    = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
+        $menuB    = $this->createMenuItem('b', $nodeB);
+        $nodeBC   = $this->createDrupalNode('test', null, ['status' => 1]);
+        $menuBC   = $this->createMenuItem('b/c', $nodeBC, 'b');
+
+        // No child reallocation
+        $tree = $provider->buildTree($menuId, true, 12, false);
+        $this->assertTrue($tree->hasNodeItems($nodeA->id()));
+        $this->assertFalse($tree->hasNodeItems($nodeAB->id()));
+        $this->assertFalse($tree->hasNodeItems($nodeABC->id()));
+
+        // With child reallocation
+        $tree = $provider->buildTree($menuId, true, 12, true);
+        $this->assertTrue($tree->hasNodeItems($nodeA->id()));
+        $this->assertFalse($tree->hasNodeItems($nodeAB->id()));
+        $this->assertTrue($tree->hasNodeItems($nodeABC->id()));
+    }
+
     public function testMenuProvider()
     {
         $this->menuName = uniqid('test');
@@ -75,17 +118,17 @@ class LegacyTreeProviderTest extends AbstractDrupalTest
          * NOPE   b
          * VISBLE b/c
          */
-        $nodeA    = $this->createDrupalNode(['status' => 1]);
+        $nodeA    = $this->createDrupalNode('test', null, ['status' => 1]);
         $menuA    = $this->createMenuItem('a', $nodeA);
-        $nodeAB   = $this->createDrupalNode(['status' => 1]);
+        $nodeAB   = $this->createDrupalNode('test', null, ['status' => 1]);
         $menuAB   = $this->createMenuItem('a/b', $nodeAB, 'a');
-        $nodeAD   = $this->createDrupalNode(['status' => 0, 'is_global' => 1]);
+        $nodeAD   = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
         $menuAD  = $this->createMenuItem('a/d', $nodeAD, 'a');
-        $nodeABC  = $this->createDrupalNode(['status' => 0, 'is_global' => 1]);
+        $nodeABC  = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
         $menuABC  = $this->createMenuItem('a/b/c', $nodeABC, 'a/b');
-        $nodeB    = $this->createDrupalNode(['status' => 0, 'is_global' => 1]);
+        $nodeB    = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
         $menuB    = $this->createMenuItem('b', $nodeB);
-        $nodeBC   = $this->createDrupalNode(['status' => 1]);
+        $nodeBC   = $this->createDrupalNode('test', null, ['status' => 1]);
         $menuBC   = $this->createMenuItem('b/c', $nodeBC, 'b');
 
         $tree = $provider->buildTree($menuId, false);

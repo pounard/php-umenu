@@ -34,7 +34,11 @@ interface TreeProviderInterface
      *   Should this check access when loading tree
      * @param int $userId
      *   User account identifier for access checks
+     * @param boolean $relocateOrphans
+     *   When a parent is not visible nor accessible, should this tree
+     *   relocate children to the menu root
+     *
      * @return \MakinaCorpus\Umenu\Tree
      */
-    public function buildTree($menuId, $withAccess = false, $userId = null);
+    public function buildTree($menuId, $withAccess = false, $userId = null, $relocateOrphans = false);
 }
