@@ -70,20 +70,22 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
                 $nodeMap[] = $item->getNodeId();
             }
 
-            $allowed = $this
-                ->getDatabase()
-                ->select('node', 'n')
-                ->fields('n', ['nid', 'nid'])
-                ->condition('n.nid', $nodeMap)
-                ->condition('n.status', 1)
-                ->addTag('node_access')
-                ->execute()
-                ->fetchAllKeyed()
-            ;
+            if (!empty($nodeMap)) {
+                $allowed = $this
+                    ->getDatabase()
+                    ->select('node', 'n')
+                    ->fields('n', ['nid', 'nid'])
+                    ->condition('n.nid', $nodeMap)
+                    ->condition('n.status', 1)
+                    ->addTag('node_access')
+                    ->execute()
+                    ->fetchAllKeyed()
+                ;
 
-            foreach ($items as $key => $item) {
-                if (!isset($allowed[$item->getNodeId()])) {
-                    unset($items[$key]);
+                foreach ($items as $key => $item) {
+                    if (!isset($allowed[$item->getNodeId()])) {
+                        unset($items[$key]);
+                    }
                 }
             }
         }
