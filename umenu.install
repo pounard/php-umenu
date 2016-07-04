@@ -141,7 +141,8 @@ function umenu_schema() {
  */
 function umenu_install_default_menus() {
   foreach (['main-menu', 'management', 'navigation', 'user-menu'] as $name) {
-    db_merge('umenu')->key(['name' => $name])->execute();
+    // FIXME: title should be the one from Drupal core
+    db_merge('umenu')->key(['name' => $name, 'title' => $name])->execute();
   }
 }
 
