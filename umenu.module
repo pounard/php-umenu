@@ -32,7 +32,7 @@ function umenu_get_manager() {
 function umenu_theme() {
   return [
     'umenu' => [
-      'variables' => ['tree' => null, 'name' => null],
+      'variables' => ['tree' => null, 'name' => null, 'current' => null],
       'template' => 'views/umenu',
     ],
   ];
@@ -51,8 +51,9 @@ function template_preprocess_umenu(&$variables, $hook) {
       $variables['theme_hook_suggestions'][] = $variables['theme_hook_original'] . '__' . str_replace('-', '_', $variables['name']);
     }
   }
-  $variables['current'] = null;
-  if ($node = menu_get_object()) {
-    $variables['current'] = $node->nid;
+  if (!isset($variables['current'])) {
+    if ($node = menu_get_object()) {
+      $variables['current'] = $node->nid;
+    }
   }
 }
