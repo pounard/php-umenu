@@ -163,7 +163,7 @@ class LegacyItemStorage implements ItemStorageInterface
         $this
             ->db
             ->query(
-                "UPDATE {menu_links} l SET l.weight = l.weight + 2 WHERE l.plid = :plid AND l.mlid <> :mlid AND weight >= :neww",
+                "UPDATE {menu_links} SET weight = weight + 2 WHERE plid = :plid AND mlid <> :mlid AND weight >= :neww",
                 [
                     ':mlid' => $otherItemId,
                     ':plid' => $parentId,
@@ -198,7 +198,7 @@ class LegacyItemStorage implements ItemStorageInterface
         $this
             ->db
             ->query(
-                "UPDATE {menu_links} l SET l.weight = l.weight - 2 WHERE l.plid = :plid AND l.mlid <> :mlid AND weight <= :neww",
+                "UPDATE {menu_links} SET weight = weight - 2 WHERE plid = :plid AND mlid <> :mlid AND weight <= :neww",
                 [
                     ':mlid' => $otherItemId,
                     ':plid' => $parentId,
@@ -301,7 +301,7 @@ class LegacyItemStorage implements ItemStorageInterface
         $this
             ->db
             ->query(
-                "UPDATE {menu_links} l SET l.weight = l.weight + 2 WHERE l.plid = :plid AND l.mlid <> :mlid AND weight >= :neww",
+                "UPDATE {menu_links} SET weight = weight + 2 WHERE plid = :plid AND mlid <> :mlid AND weight >= :neww",
                 [
                     ':mlid' => $otherItemId,
                     ':plid' => $parentId,
@@ -329,7 +329,7 @@ class LegacyItemStorage implements ItemStorageInterface
         $this
             ->db
             ->query(
-                "UPDATE {menu_links} l SET l.weight = l.weight - 2 WHERE l.plid = :plid AND l.mlid <> :mlid AND weight <= :neww",
+                "UPDATE {menu_links} SET weight = weight - 2 WHERE plid = :plid AND mlid <> :mlid AND weight <= :neww",
                 [
                     ':mlid' => $otherItemId,
                     ':plid' => $parentId,
