@@ -60,4 +60,17 @@ final class TreeItem extends TreeBase
     {
         return 'node/' . $this->node_id;
     }
+
+    public function isInTrailOf($nodeId)
+    {
+        if ($nodeId === $this->node_id) {
+            return true;
+        }
+
+        foreach ($this->children as $child) {
+            if ($child->isInTrailOf($nodeId)) {
+                return true;
+            }
+        }
+    }
 }
