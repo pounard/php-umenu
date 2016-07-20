@@ -77,10 +77,12 @@ class DrupalMenuStorage implements MenuStorageInterface
             $q->condition('um.' . $key, $value);
         }
         $r = $q->execute();
+        $r->setFetchMode(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, Menu::class);
 
         $ret = [];
-        while ($menu = $r->fetchAssoc()) {
-            $ret[$menu['name']] = $menu;
+
+        while ($menu = $r->fetch()) {
+            $ret[$menu->getName()] = $menu;
         }
 
         return $ret;

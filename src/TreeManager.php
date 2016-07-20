@@ -91,8 +91,12 @@ class TreeManager
     public function cloneMenu($menuId, $siteId, $name)
     {
         $source = $this->menuStorage->load($menuId);
-        $source['site_id'] = $siteId;
-        $target = $this->menuStorage->create($name, $source);
+        $values = [
+            'title'       => $source->getTitle(),
+            'description' => $source->getDescription(),
+            'site_id'     => $siteId,
+        ];
+        $target = $this->menuStorage->create($name, $values);
 
         return $this->cloneTreeIn($target['id'], $this->buildTree($menuId));
     }

@@ -4,6 +4,7 @@ namespace MakinaCorpus\Umenu\Tests;
 
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
 use MakinaCorpus\Umenu\DrupalMenuStorage;
+use MakinaCorpus\Umenu\Menu;
 
 class DrupalMenuStorageTest extends AbstractDrupalTest
 {
@@ -30,10 +31,10 @@ class DrupalMenuStorageTest extends AbstractDrupalTest
 
         // Create a new menu
         $created = $storage->create('foo', ['title' => "Foo!"]);
-        $this->assertTrue(is_array($created));
-        $this->assertSame('foo', $created['name']);
-        $this->assertSame('Foo!', $created['title']);
-        $this->assertEmpty($created['description']);
+        $this->assertTrue($created instanceof Menu);
+        $this->assertSame('foo', $created->getName());
+        $this->assertSame('Foo!', $created->getTitle());
+        $this->assertEmpty($created->getDescription());
 
         // Attempt to recreate it (exception)
         try {
@@ -55,11 +56,11 @@ class DrupalMenuStorageTest extends AbstractDrupalTest
 
         // Load it back, all of them, check one has been updated not the others
         $foo = $storage->load('foo');
-        $this->assertSame('foo', $foo['name']);
-        $this->assertSame('Booh', $foo['title']);
+        $this->assertSame('foo', $foo->getName());
+        $this->assertSame('Booh', $foo->getTitle());
         $bar = $storage->load('bar');
-        $this->assertSame('bar', $bar['name']);
-        $this->assertSame('The Bar', $bar['title']);
+        $this->assertSame('bar', $bar->getName());
+        $this->assertSame('The Bar', $bar->getTitle());
 
         // Delete 'foo' ensures that 'bar' still exists
         $storage->delete('foo');
@@ -89,8 +90,8 @@ class DrupalMenuStorageTest extends AbstractDrupalTest
         ]);
         $this->assertCount(2, $ret);
         ksort($ret);
-        $this->assertSame('a', $ret['a']['name']);
-        $this->assertSame('b', $ret['b']['name']);
+        $this->assertSame('a', $ret['a']->getName());
+        $this->assertSame('b', $ret['b']->getName());
 
         $ret = $storage->loadWithConditions([
             'title'       => ['tarte', 'lapin'],
@@ -98,10 +99,10 @@ class DrupalMenuStorageTest extends AbstractDrupalTest
         ]);
         $this->assertCount(4, $ret);
         ksort($ret);
-        $this->assertSame('a', $ret['a']['name']);
-        $this->assertSame('b', $ret['b']['name']);
-        $this->assertSame('c', $ret['c']['name']);
-        $this->assertSame('d', $ret['d']['name']);
+        $this->assertSame('a', $ret['a']->getName());
+        $this->assertSame('b', $ret['b']->getName());
+        $this->assertSame('c', $ret['c']->getName());
+        $this->assertSame('d', $ret['d']->getName());
     }
 
     public function testEvents()

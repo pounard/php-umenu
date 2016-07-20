@@ -16,7 +16,7 @@ interface MenuStorageInterface
      * @param int|string $name
      *   If int is provided, it's a menu identifier, else it's a menu name
      *
-     * @return string[]
+     * @return Menu
      *   Table row and data, if schema has been altered, there will be all data
      *   from added columns in there
      *
@@ -39,7 +39,7 @@ interface MenuStorageInterface
      *
      * @param string[] $nameList
      *
-     * @return string[][]
+     * @return Menu[]
      *   Same as load() but an array of it
      */
     public function loadMultiple($nameList);
@@ -51,8 +51,8 @@ interface MenuStorageInterface
      *   Keys are field names, values are single values or array of values
      *   (case in which an IN query will be done)
      *
-     * @return string[][]
-     *   Same as load() but an array of it 
+     * @return Menu[]
+     *   Same as load() but an array of it
      */
     public function loadWithConditions($conditions);
 
@@ -86,7 +86,7 @@ interface MenuStorageInterface
      * @param array $values
      *   Any values that will end up in the database, 'name' will be dropped.
      *
-     * @return string[]
+     * @return Menu
      *   The created instance
      *
      * @throws \InvalidArgumentException
