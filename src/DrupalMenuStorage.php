@@ -115,9 +115,7 @@ class DrupalMenuStorage implements MenuStorageInterface
     {
         $existing = $this->load($name);
 
-        if (array_key_exists('name', $values)) {
-            unset($values['name']);
-        }
+        unset($values['name'], $values['id'], $values['status']);
 
         if (empty($values)) { // Nothing to update
             return;
@@ -134,6 +132,58 @@ class DrupalMenuStorage implements MenuStorageInterface
         if ($this->dispatcher) {
             $existing = $values + $existing;
             $this->dispatcher->dispatch('menu:update', new GenericEvent($existing));
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setMainMenuStatus($name, $toggle = true)
+    {
+        $existing = $this->load($name);
+
+        if (!$existing) {
+            throw new \InvalidArgumentException(sprintf("%s: cannot change main status, menu does not exist", $name));
+        }
+        if (!$existing->getSiteId()) {
+            throw new \LogicException(sprintf("%s: cannot change main status, menu does not belong to a site", $name));
+        }
+
+        $status = (bool)$toggle;
+        if ($status === $existing->isSiteMain()) {
+            // Nothing to do
+            return;
+        }
+
+        if ($status) {
+            // Drop main menu status for all others within the same site
+            $this
+                ->db
+                ->query(
+                    "UPDATE {umenu} SET is_main = 0 WHERE site_id = :site AND name <> :name",
+                    [':site' => $existing->getSiteId(), ':name' => $name]
+                )
+                ->execute()
+            ;
+
+            // And change menu, yeah.
+            $this
+                ->db
+                ->query(
+                    "UPDATE {umenu} SET is_main = 1 WHERE name = :name",
+                    [':name' => $name]
+                )
+                ->execute()
+            ;
+        } else {
+            $this
+                ->db
+                ->query(
+                    "UPDATE {umenu} SET is_main = 0 WHERE name = :name",
+                    [':name' => $name]
+                )
+                ->execute()
+            ;
         }
     }
 

@@ -68,6 +68,8 @@ interface MenuStorageInterface
     /**
      * Update a single menu definition
      *
+     * From these values, the main menu status will be ignored.
+     *
      * @param string $name
      *
      * @param array $values
@@ -77,6 +79,22 @@ interface MenuStorageInterface
      *   If the menu does not exist
      */
     public function update($name, array $values);
+
+    /**
+     * Set main menu status of the given menu
+     *
+     * All other menus within the same site will be updated to be unset as
+     * main menus, if the $toggle boolean is true.
+     *
+     * @param string $name
+     * @param boolean $toggle
+     *
+     * @throws \InvalidArgumentException
+     *   If the menu does not exists
+     * @throws \LogicException
+     *   If the menu is not attached to a site
+     */
+    public function setMainMenuStatus($name, $toggle = true);
 
     /**
      * Insert a single menu definition

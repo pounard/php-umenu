@@ -105,6 +105,12 @@ class DrupalMenuStorageTest extends AbstractDrupalTest
         $this->assertSame('d', $ret['d']->getName());
     }
 
+
+    public function testMainMenuStatus()
+    {
+        // @todo We have a dependency problem with ucms_site
+    }
+
     public function testEvents()
     {
         // @todo

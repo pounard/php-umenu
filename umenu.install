@@ -24,6 +24,13 @@ function umenu_schema() {
         'not null'    => false,
         'default'     => null,
       ],
+      'is_main' => [
+        'description' => 'Is this menu the main menu for the given site',
+        'type'        => 'int',
+        'unsigned'    => true,
+        'not null'    => true,
+        'default'     => 0,
+      ],
       'name' => [
         'description' => 'Primary Key: Unique key for menu. This is used as a block delta so length is 32',
         'type'        => 'varchar',
@@ -210,6 +217,21 @@ function umenu_update_7004() {
       'description' => 'Menu item order relative to its parent',
       'type'        => 'int',
       'unsigned'    => false,
+      'not null'    => true,
+      'default'     => 0,
+    ]);
+  }
+}
+
+/**
+ * Adds missing {umenu}.is_main column.
+ */
+function umenu_update_7005() {
+  if (!db_field_exists('umenu', 'is_main')) {
+    db_add_field('umenu', 'is_main', [
+      'description' => 'Is this menu the main menu for the given site',
+      'type'        => 'int',
+      'unsigned'    => true,
       'not null'    => true,
       'default'     => 0,
     ]);

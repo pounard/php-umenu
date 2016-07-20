@@ -5,6 +5,8 @@ namespace MakinaCorpus\Umenu;
 /**
  * Single menu object
  *
+ * This class is immutable, modifications are done via the menu storage.
+ *
  * Please do not use ArrayAccess methods, they are meant to provide backward
  * compatibility therefore are deprecated.
  */
@@ -15,11 +17,13 @@ class Menu implements \ArrayAccess
     private $title;
     private $description;
     private $site_id;
+    private $is_main;
 
-    public function __construct($id = null, $name = null, $title = null, $description = null, $siteId = null)
+    public function __construct($id = null, $name = null, $title = null, $description = null, $siteId = null, $isMain = false)
     {
         $this->id = $id;
         $this->name = $name;
+        $this->is_main = (bool)$isMain;
         $this->title = $title;
         $this->description = $description;
         $this->site_id = $siteId;
@@ -35,9 +39,9 @@ class Menu implements \ArrayAccess
         return $this->name;
     }
 
-    public function setName($name)
+    public function isSiteMain()
     {
-        $this->name = $name;
+        return (bool)$this->is_main;
     }
 
     public function getTitle()
@@ -45,29 +49,14 @@ class Menu implements \ArrayAccess
         return $this->title;
     }
 
-    public function setTitle($title)
-    {
-        $this->title = $title;
-    }
-
     public function getDescription()
     {
         return $this->description;
     }
 
-    public function setDescription($description)
-    {
-        $this->description = $description;
-    }
-
     public function getSiteId()
     {
         return $this->site_id;
-    }
-
-    public function setSiteId($siteId)
-    {
-        $this->site_id = $siteId;
     }
 
     /**
@@ -135,30 +124,7 @@ class Menu implements \ArrayAccess
      */
     public function offsetSet($offset, $value)
     {
-        trigger_error("MakinaCorpus\Umenu\Menu array access is deprecated, use accessors instead", E_USER_DEPRECATED);
-
-        switch ($offset) {
-
-            case 'name':
-                $this->name = $value;
-                break;
-
-            case 'title':
-                $this->title = $value;
-                break;
-
-            case 'description':
-                $this->description = $value;
-                break;
-
-            case 'site_id':
-                $this->site_id = $value;
-                break;
-
-            default:
-                trigger_error(sprintf("MakinaCorpus\Umenu\Menu '%s' property is not mutable, use accessors instead", $offset), E_USER_DEPRECATED);
-                break;
-        }
+        trigger_error("MakinaCorpus\Umenu\Menu is immutable, use accessors instead", E_USER_DEPRECATED);
     }
 
     /**
@@ -168,29 +134,6 @@ class Menu implements \ArrayAccess
      */
     public function offsetUnset($offset)
     {
-        trigger_error("MakinaCorpus\Umenu\Menu array access is deprecated, use accessors instead", E_USER_DEPRECATED);
-
-        switch ($offset) {
-
-            case 'name':
-                $this->name = null;
-                break;
-
-            case 'title':
-                $this->title = null;
-                break;
-
-            case 'description':
-                $this->description = null;
-                break;
-
-            case 'site_id':
-                $this->site_id = null;
-                break;
-
-            default:
-                trigger_error(sprintf("MakinaCorpus\Umenu\Menu '%s' property is not mutable, use accessors instead", $offset), E_USER_DEPRECATED);
-                break;
-        }
+        trigger_error("MakinaCorpus\Umenu\Menu is immutable, use accessors instead", E_USER_DEPRECATED);
     }
 }
