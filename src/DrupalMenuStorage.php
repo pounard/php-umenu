@@ -163,7 +163,6 @@ class DrupalMenuStorage implements MenuStorageInterface
                     "UPDATE {umenu} SET is_main = 0 WHERE site_id = :site AND name <> :name",
                     [':site' => $existing->getSiteId(), ':name' => $name]
                 )
-                ->execute()
             ;
 
             // And change menu, yeah.
@@ -173,7 +172,6 @@ class DrupalMenuStorage implements MenuStorageInterface
                     "UPDATE {umenu} SET is_main = 1 WHERE name = :name",
                     [':name' => $name]
                 )
-                ->execute()
             ;
         } else {
             $this
@@ -182,7 +180,6 @@ class DrupalMenuStorage implements MenuStorageInterface
                     "UPDATE {umenu} SET is_main = 0 WHERE name = :name",
                     [':name' => $name]
                 )
-                ->execute()
             ;
         }
     }
