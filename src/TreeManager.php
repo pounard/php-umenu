@@ -161,7 +161,7 @@ class TreeManager
     public function buildTree($menuId, $withAccess = false, $relocateOrphans = false, $resetCache = false)
     {
         if (!is_numeric($menuId)) {
-            $menuId = $this->menuStorage->load($menuId)['id'];
+            $menuId = $this->menuStorage->load($menuId)->getId();
         }
 
         if (!$resetCache && isset($this->cache[$menuId][(int)$withAccess])) {
