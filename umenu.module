@@ -27,6 +27,16 @@ function umenu_get_manager() {
 }
 
 /**
+ * Menu load callback
+ */
+function umenu_load($id) {
+  try {
+    return umenu_get_storage()->load($id);
+  } catch (\InvalidArgumentException $e) {}
+  return false;
+}
+
+/**
  * Implements hook_theme().
  */
 function umenu_theme() {

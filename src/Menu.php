@@ -41,7 +41,7 @@ class Menu implements \ArrayAccess
 
     public function isSiteMain()
     {
-        return (bool)$this->is_main;
+        return $this->hasSiteId() && $this->is_main;
     }
 
     public function getTitle()
@@ -52,6 +52,11 @@ class Menu implements \ArrayAccess
     public function getDescription()
     {
         return $this->description;
+    }
+
+    public function hasSiteId()
+    {
+        return !empty($this->site_id);
     }
 
     public function getSiteId()

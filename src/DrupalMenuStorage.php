@@ -113,8 +113,6 @@ class DrupalMenuStorage implements MenuStorageInterface
      */
     public function update($name, array $values)
     {
-        $existing = $this->load($name);
-
         unset($values['name'], $values['id'], $values['status']);
 
         if (empty($values)) { // Nothing to update
@@ -130,8 +128,7 @@ class DrupalMenuStorage implements MenuStorageInterface
         ;
 
         if ($this->dispatcher) {
-            $existing = $values + $existing;
-            $this->dispatcher->dispatch('menu:update', new GenericEvent($existing));
+            $this->dispatcher->dispatch('menu:update', new GenericEvent($this->load($name)));
         }
     }
 
