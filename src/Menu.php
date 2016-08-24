@@ -28,7 +28,7 @@ class Menu implements \ArrayAccess
         $this->title = $title;
         $this->description = $description;
         $this->site_id = $siteId;
-        $this->role = $role;
+        $this->role = $role ? $role : null;
     }
 
     public function getId()

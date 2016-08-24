@@ -143,6 +143,9 @@ class DrupalMenuStorage implements MenuStorageInterface
             throw new \InvalidArgumentException(sprintf("%s: cannot change main status, menu does not exist", $name));
         }
 
+        if (!$role) {
+            $role = null; // ensure NULL in database and not empty string
+        }
         if ($role !== $existing->getRole()) {
             // Nothing to do
             return;
