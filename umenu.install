@@ -31,6 +31,13 @@ function umenu_schema() {
         'not null'    => true,
         'default'     => 0,
       ],
+      'role' => [
+        'description' => 'Menu role, for business layer this could mean anything',
+        'type'        => 'varchar',
+        'length'      => 64,
+        'not null'    => false,
+        'default'     => null,
+      ],
       'name' => [
         'description' => 'Primary Key: Unique key for menu. This is used as a block delta so length is 32',
         'type'        => 'varchar',
@@ -234,6 +241,21 @@ function umenu_update_7005() {
       'unsigned'    => true,
       'not null'    => true,
       'default'     => 0,
+    ]);
+  }
+}
+
+/**
+ * Adds missing {umenu}.role column.
+ */
+function umenu_update_7006() {
+  if (!db_field_exists('umenu', 'role')) {
+    db_add_field('umenu', 'role', [
+      'description' => 'Menu role, for business layer this could mean anything',
+      'type'        => 'varchar',
+      'length'      => 64,
+      'not null'    => false,
+      'default'     => null,
     ]);
   }
 }

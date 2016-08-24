@@ -9,7 +9,7 @@ namespace MakinaCorpus\Umenu;
  *   - only items visible to user without orphans
  *   - only items visible to user with orphans relocated to root
  */
-class Tree extends TreeBase
+final class Tree extends TreeBase
 {
     private $topLevel = [];
     private $perNode = [];
@@ -96,7 +96,6 @@ class Tree extends TreeBase
                 // extending the TreeBase class, and properties are protected.
                 $this->children[$parentId]->children[$item->getId()] = $item;
             }
-
 
             // And we need to be able to fetch those per node too.
             $nodeId = $item->getNodeId();

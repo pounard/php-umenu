@@ -104,7 +104,7 @@ class DrupalMenuStorage implements MenuStorageInterface
         $this->db->delete('umenu')->condition('name', $name)->execute();
 
         if ($this->dispatcher && $existing) {
-            $this->dispatcher->dispatch('menu:create', new GenericEvent($existing));
+            $this->dispatcher->dispatch('menu:delete', new GenericEvent($existing));
         }
     }
 
@@ -135,7 +135,42 @@ class DrupalMenuStorage implements MenuStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function setMainMenuStatus($name, $toggle = true)
+    public function toggleRole($name, $role)
+    {
+        $existing = $this->load($name);
+
+        if (!$existing) {
+            throw new \InvalidArgumentException(sprintf("%s: cannot change main status, menu does not exist", $name));
+        }
+
+        if ($role !== $existing->getRole()) {
+            // Nothing to do
+            return;
+        }
+
+        if ($role) {
+            $this
+                ->db
+                ->query(
+                    "UPDATE {umenu} SET role = :role WHERE id = :id",
+                    [':role' => $role, ':id' => $existing->getId()]
+                )
+            ;
+        } else {
+            $this
+                ->db
+                ->query(
+                    "UPDATE {umenu} SET role = NULL WHERE id = :id",
+                    [':id' => $existing->getId()]
+                )
+            ;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function toggleMainStatus($name, $toggle = true)
     {
         $existing = $this->load($name);
 

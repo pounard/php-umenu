@@ -18,8 +18,9 @@ class Menu implements \ArrayAccess
     private $description;
     private $site_id;
     private $is_main;
+    private $role;
 
-    public function __construct($id = null, $name = null, $title = null, $description = null, $siteId = null, $isMain = false)
+    public function __construct($id = null, $name = null, $title = null, $description = null, $siteId = null, $isMain = false, $role = null)
     {
         $this->id = $id;
         $this->name = $name;
@@ -27,6 +28,7 @@ class Menu implements \ArrayAccess
         $this->title = $title;
         $this->description = $description;
         $this->site_id = $siteId;
+        $this->role = $role;
     }
 
     public function getId()
@@ -52,6 +54,16 @@ class Menu implements \ArrayAccess
     public function getDescription()
     {
         return $this->description;
+    }
+
+    public function hasRole()
+    {
+        return !empty($this->role);
+    }
+
+    public function getRole()
+    {
+        return $this->role;
     }
 
     public function hasSiteId()

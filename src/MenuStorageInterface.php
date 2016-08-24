@@ -81,6 +81,16 @@ interface MenuStorageInterface
     public function update($name, array $values);
 
     /**
+     * Set menu role
+     *
+     * @param int|string $name
+     *   Menu identifier or name
+     * @param string $role
+     *   Arbitrary new role (could be anything this API does not care) may be null
+     */
+    public function toggleRole($name, $role);
+
+    /**
      * Set main menu status of the given menu
      *
      * All other menus within the same site will be updated to be unset as
@@ -94,7 +104,7 @@ interface MenuStorageInterface
      * @throws \LogicException
      *   If the menu is not attached to a site
      */
-    public function setMainMenuStatus($name, $toggle = true);
+    public function toggleMainStatus($name, $toggle = true);
 
     /**
      * Insert a single menu definition
