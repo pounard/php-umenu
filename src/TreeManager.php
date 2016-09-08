@@ -98,7 +98,7 @@ class TreeManager
         ];
         $target = $this->menuStorage->create($name, $values);
 
-        return $this->cloneTreeIn($target['id'], $this->buildTree($menuId));
+        return $this->cloneTreeIn($target->getId(), $this->buildTree($menuId));
     }
 
     /**
@@ -117,7 +117,7 @@ class TreeManager
         $source = $this->menuStorage->load($sourceMenuId);
         $target = $this->menuStorage->load($targetMenuId);
 
-        return $this->cloneTreeIn($target['id'], $this->buildTree($source['id']));
+        return $this->cloneTreeIn($target->getId(), $this->buildTree($source->getId()));
     }
 
     /**
