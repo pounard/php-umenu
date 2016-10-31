@@ -146,6 +146,39 @@ class TreeManager
     }
 
     /**
+     * Arbitrary find a tree where the node is with the given conditions
+     *
+     * This a very naive version of menu_link_get_preferred().
+     *
+     * By default, this method will always give you the main menu if it is
+     * found in the results.
+     *
+     * @todo as Drupal does, allow to give a menu preference order, either
+     *   by role, by adding a 'priority' column, by giving an abitrary sort
+     *   field, or by a list of fixed ordered names
+     *
+     * @param int $nodeId
+     * @param mixed[] $conditions
+     *   Conditions that applies to the menu storage
+     * @param boolean $withAccess
+     *   If set to true, menu will only container visible items for current user
+     * @param boolean $relocateOrphans
+     *   When a parent is not visible nor accessible, should this tree
+     *   relocate children to the menu root
+     *
+     * @return Tree
+     *   It may be null if nothing has been found
+     */
+    public function findTreeForNode($nodeId, array $conditions = [], $withAccess = false, $relocateOrphans = false)
+    {
+        $menuId = $this->provider->findTreeForNode($nodeId, $conditions);
+
+        if ($menuId) {
+            return $this->buildTree($menuId, $withAccess, $relocateOrphans);
+        }
+    }
+
+    /**
      * Alias of TreeProviderInterface::buildTree()
      *
      * @param int|string $menuId

@@ -29,6 +29,19 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
     abstract protected function loadTreeItems($menuId);
 
     /**
+     * Load tree items
+     *
+     * @param int $nodeId
+     *   Conditions that applies to the menu storage
+     * @param mixed[] $conditions
+     *   Conditions that applies to the menu storage
+     *
+     * @return string[]
+     *   List of menu identifiers
+     */
+    abstract protected function findAllMenuFor($nodeId, array $conditions = []);
+
+    /**
      * @return \DatabaseConnection
      */
     final protected function getDatabase()
@@ -50,6 +63,20 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
     public function cloneTreeIn($menuId, Tree $tree)
     {
         throw new \LogicException("This tree provider implementation cannot clone trees");
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findTreeForNode($nodeId, array $conditions = [])
+    {
+        $menuIdList = $this->findAllMenuFor($nodeId, $conditions);
+
+        if ($menuIdList) {
+            // Arbitrary take the first
+            // @todo later give more control to this for users
+            return reset($menuIdList);
+        }
     }
 
     /**

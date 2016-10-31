@@ -8,11 +8,7 @@ namespace MakinaCorpus\Umenu;
 class LegacyTreeProvider extends AbstractTreeProvider
 {
     /**
-     * Load tree items
-     *
-     * @param int $menuId
-     *
-     * @return TreeItem[]
+     * {@inheritdoc}
      */
     protected function loadTreeItems($menuId)
     {
@@ -58,5 +54,37 @@ class LegacyTreeProvider extends AbstractTreeProvider
         $r->setFetchMode(\PDO::FETCH_CLASS, TreeItem::class);
 
         return $r->fetchAll();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function findAllMenuFor($nodeId, array $conditions = [])
+    {
+        $query = $this
+            ->getDatabase()
+            ->select('menu_links', 'l')
+            ->condition('l.link_path', 'node/' . $nodeId)
+        ;
+
+        $query->join('umenu', 'm', "m.name = l.menu_name");
+        $query->fields('m', ['id']);
+        $query->groupBy('m.id');
+
+        // @todo this is not the right place to do this, but for performances
+        //  at the current state, it's the best place to put it: this forces
+        //  the findTreeForNode() awaited behavior and always order the menus
+        //  using the 'is_main' property DESC to ensure that main menus are
+        //  preferred to the others
+        $query->orderBy('m.is_main', 'DESC');
+        $query->orderBy('m.id', 'ASC');
+
+        if ($conditions) {
+            foreach ($conditions as $key => $value) {
+                $query->condition('m.' . $key, $value);
+            }
+        }
+
+        return $query->execute()->fetchCol();
     }
 }
