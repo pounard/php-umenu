@@ -24,6 +24,18 @@ class TreeBase
     }
 
     /**
+     * Get ordered node identifiers that matches the children, in the same order
+     *
+     * @return int[]
+     */
+    public function getChildrenNodeIdList()
+    {
+        return array_map(function ($child) {
+            return $child->getNodeId();
+        }, $this->children);
+    }
+
+    /**
      * Has this object children
      *
      * @return boolean
