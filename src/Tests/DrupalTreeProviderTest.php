@@ -65,7 +65,7 @@ class LegacyTreeProviderTest extends AbstractDrupalTest
         $storage  = $this->getMenuStorage();
         $provider = $this->getTreeProvider();
         $menu     = $storage->create($this->menuName, ['title' => 'some title']);
-        $menuId   = $menu['id'];
+        $menuId   = $menu->getId();
 
         /*
          * VISBLE a
@@ -108,7 +108,7 @@ class LegacyTreeProviderTest extends AbstractDrupalTest
         $storage  = $this->getMenuStorage();
         $provider = $this->getTreeProvider();
         $menu     = $storage->create($this->menuName, ['title' => 'some title']);
-        $menuId   = $menu['id'];
+        $menuId   = $menu->getId();
 
         /*
          * VISBLE a

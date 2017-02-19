@@ -82,7 +82,7 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
 
         $site = $this->createDrupalSite();
         $menu = $menuStorage->create($this->menus[] = uniqid('test_item_storage'));
-        $menuId = $menu['id'];
+        $menuId = $menu->getId();
 
         /*
          * Build:
@@ -163,10 +163,10 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
 
         $newSite = $this->createDrupalSite();
         $otherMenu = $menuStorage->create($this->menus[] = uniqid('test_item_storage'), ['site_id' => $newSite->getId()]);
-        $tree = $provider->buildTree($menu['id']);
+        $tree = $provider->buildTree($menu->getId());
         $newSiteId = $newSite->getId();
         $manager = new TreeManager($menuStorage, $itemStorage, $provider, new User());
-        $newTree = $manager->cloneTreeIn($otherMenu['id'], $tree);
+        $newTree = $manager->cloneTreeIn($otherMenu->getId(), $tree);
 
         $actual = $this->recursiveBuildArrayWithoutId($newTree);
         $expected = [
@@ -219,7 +219,7 @@ abstract class AbstractItemStorageTest extends AbstractDrupalTest
 
         $site = $this->createDrupalSite();
         $menu = $menuStorage->create($this->menus[] = uniqid('test_item_storage'));
-        $menuId = $menu['id'];
+        $menuId = $menu->getId();
 
         /*
          * Build:
