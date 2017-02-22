@@ -163,6 +163,34 @@ final class Tree extends TreeBase
     }
 
     /**
+     * Get most revelant trail for node
+     *
+     * @param int $nodeId
+     *
+     * @return TreeItem[]
+     *  Tree items in order, from the top most parent to the node item
+     */
+    public function getMostRevelantTrailForNode($nodeId)
+    {
+        $trail = [];
+
+        $item = $this->getMostRevelantItemForNode($nodeId);
+        if (!$item) {
+            return $trail;
+        }
+
+        $trail[] = $item;
+
+        $parentId = $item->getParentId();
+        while (isset($this->children[$parentId])) {
+            array_unshift($trail, $item = $this->children[$parentId]);
+            $parentId = $item->getParentId();
+        }
+
+        return $trail;
+    }
+
+    /**
      * Is the current tree empty
      *
      * @return boolean
