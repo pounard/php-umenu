@@ -4,6 +4,9 @@ namespace MakinaCorpus\Umenu;
 
 /**
  * Loads trees.
+ *
+ * @todo
+ *   This seriously need to be fixed performance-wise
  */
 abstract class AbstractTreeProvider implements TreeProviderInterface
 {
