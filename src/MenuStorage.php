@@ -2,8 +2,8 @@
 
 namespace MakinaCorpus\Umenu;
 
+use MakinaCorpus\Umenu\Event\MenuEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
 
 class MenuStorage implements MenuStorageInterface
 {
@@ -104,7 +104,7 @@ class MenuStorage implements MenuStorageInterface
         $this->db->delete('umenu')->condition('name', $name)->execute();
 
         if ($this->dispatcher && $existing) {
-            $this->dispatcher->dispatch('menu:delete', new GenericEvent($existing));
+            $this->dispatcher->dispatch(MenuEvent::EVENT_DELETE, new MenuEvent($existing));
         }
     }
 
@@ -128,7 +128,7 @@ class MenuStorage implements MenuStorageInterface
         ;
 
         if ($this->dispatcher) {
-            $this->dispatcher->dispatch('menu:update', new GenericEvent($this->load($name)));
+            $this->dispatcher->dispatch(MenuEvent::EVENT_UPDATE, new MenuEvent($this->load($name)));
         }
     }
 
@@ -167,6 +167,10 @@ class MenuStorage implements MenuStorageInterface
                     [':id' => $existing->getId()]
                 )
             ;
+        }
+
+        if ($this->dispatcher && $existing) {
+            $this->dispatcher->dispatch(MenuEvent::EVENT_TOGGLE_ROLE, new MenuEvent($existing, ['role' => $role]));
         }
     }
 
@@ -217,6 +221,10 @@ class MenuStorage implements MenuStorageInterface
                 )
             ;
         }
+
+        if ($this->dispatcher && $existing) {
+            $this->dispatcher->dispatch(MenuEvent::EVENT_TOGGLE_MAIN, new MenuEvent($existing, ['is_main' => $toggle]));
+        }
     }
 
     /**
@@ -247,7 +255,7 @@ class MenuStorage implements MenuStorageInterface
         $menu = $this->load($name);
 
         if ($this->dispatcher) {
-            $this->dispatcher->dispatch('menu:create', new GenericEvent($menu));
+            $this->dispatcher->dispatch(MenuEvent::EVENT_CREATE, new MenuEvent($menu));
         }
 
         return $menu;
