@@ -5,7 +5,7 @@ namespace MakinaCorpus\Umenu;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
-class DrupalMenuStorage implements MenuStorageInterface
+class MenuStorage implements MenuStorageInterface
 {
     /**
      * @var \DatabaseConnection

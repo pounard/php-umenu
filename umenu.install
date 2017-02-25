@@ -88,7 +88,8 @@ function umenu_schema() {
         'description' => 'Site identifier denormalization, used for foreign key constraints',
         'type'        => 'int',
         'unsigned'    => true,
-        'not null'    => true,
+        'not null'    => false,
+        'default'     => null,
       ],
       'node_id' => [
         'description' => 'Node (content) identifier',
@@ -259,3 +260,17 @@ function umenu_update_7006() {
     ]);
   }
 }
+
+/**
+ * Fixes {umenu_item}.site_id column.
+ */
+function umenu_update_7008() {
+  db_change_field('umenu_item', 'site_id', 'site_id', [
+    'description' => 'Site identifier denormalization, used for foreign key constraints',
+    'type'        => 'int',
+    'unsigned'    => true,
+    'not null'    => false,
+    'default'     => null,
+  ]);
+}
+

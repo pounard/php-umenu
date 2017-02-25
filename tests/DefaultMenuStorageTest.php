@@ -3,10 +3,10 @@
 namespace MakinaCorpus\Umenu\Tests;
 
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
-use MakinaCorpus\Umenu\DrupalMenuStorage;
 use MakinaCorpus\Umenu\Menu;
+use MakinaCorpus\Umenu\MenuStorage;
 
-class DrupalMenuStorageTest extends AbstractDrupalTest
+class DefaultMenuStorageTest extends AbstractDrupalTest
 {
     protected function tearDown()
     {
@@ -17,7 +17,7 @@ class DrupalMenuStorageTest extends AbstractDrupalTest
 
     public function testCrud()
     {
-        $storage = new DrupalMenuStorage($this->getDatabaseConnection());
+        $storage = new MenuStorage($this->getDatabaseConnection());
 
         // Load a non existing menu (exception)
         try {

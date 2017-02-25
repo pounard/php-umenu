@@ -3,14 +3,13 @@
 namespace MakinaCorpus\Umenu\Tests;
 
 use Drupal\user\User;
-
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
-use MakinaCorpus\Umenu\TreeProviderInterface;
+use MakinaCorpus\Ucms\Site\Tests\SiteTestTrait;
 use MakinaCorpus\Umenu\ItemStorageInterface;
 use MakinaCorpus\Umenu\MenuStorageInterface;
 use MakinaCorpus\Umenu\TreeBase;
-use MakinaCorpus\Ucms\Site\Tests\SiteTestTrait;
 use MakinaCorpus\Umenu\TreeManager;
+use MakinaCorpus\Umenu\TreeProviderInterface;
 
 abstract class AbstractItemStorageTest extends AbstractDrupalTest
 {

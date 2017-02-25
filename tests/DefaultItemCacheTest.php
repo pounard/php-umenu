@@ -2,15 +2,15 @@
 
 namespace MakinaCorpus\Umenu\Tests;
 
-use MakinaCorpus\Umenu\Legacy\LegacyItemStorage;
-use MakinaCorpus\Umenu\Legacy\LegacyTreeProvider;
+use MakinaCorpus\Umenu\ItemStorage;
 use MakinaCorpus\Umenu\MenuStorage;
+use MakinaCorpus\Umenu\TreeProvider;
 
-class LegacyItemCacheTest extends AbstractCacheTest
+class DefaultItemCacheTest extends AbstractCacheTest
 {
     protected function getItemStorage()
     {
-        return new LegacyItemStorage($this->getDatabaseConnection());
+        return new ItemStorage($this->getDatabaseConnection());
     }
 
     protected function getMenuStorage()
@@ -20,7 +20,7 @@ class LegacyItemCacheTest extends AbstractCacheTest
 
     protected function getTreeProvider()
     {
-        $treeProvider = new LegacyTreeProvider($this->getDatabaseConnection());
+        $treeProvider = new TreeProvider($this->getDatabaseConnection());
         $treeProvider->setCacheBackend($this->getCacheBackend());
 
         return $treeProvider;

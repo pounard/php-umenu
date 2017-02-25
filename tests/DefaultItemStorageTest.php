@@ -2,15 +2,15 @@
 
 namespace MakinaCorpus\Umenu\Tests;
 
-use MakinaCorpus\Umenu\Legacy\LegacyItemStorage;
-use MakinaCorpus\Umenu\Legacy\LegacyTreeProvider;
+use MakinaCorpus\Umenu\ItemStorage;
 use MakinaCorpus\Umenu\MenuStorage;
+use MakinaCorpus\Umenu\TreeProvider;
 
-class LegacyItemStorageTest extends AbstractItemStorageTest
+class DefaultItemStorageTest extends AbstractItemStorageTest
 {
     protected function getItemStorage()
     {
-        return new LegacyItemStorage($this->getDatabaseConnection());
+        return new ItemStorage($this->getDatabaseConnection());
     }
 
     protected function getMenuStorage()
@@ -20,6 +20,6 @@ class LegacyItemStorageTest extends AbstractItemStorageTest
 
     protected function getTreeProvider()
     {
-        return new LegacyTreeProvider($this->getDatabaseConnection());
+        return new TreeProvider($this->getDatabaseConnection());
     }
 }

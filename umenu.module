@@ -7,7 +7,7 @@
 /**
  * Get menu storage service
  *
- * @return \MakinaCorpus\Umenu\DrupalMenuStorage
+ * @return \MakinaCorpus\Umenu\MenuStorage
  *
  * @deprecated
  */

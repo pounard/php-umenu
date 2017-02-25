@@ -5,7 +5,7 @@ services:
   # remain the primary storage
   umenu.menu_storage.drupal:
     public: false
-    class: MakinaCorpus\Umenu\DrupalMenuStorage
+    class: MakinaCorpus\Umenu\MenuStorage
     arguments: ["@database", "@event_dispatcher"]
 
   # Change this to change the primary storage
