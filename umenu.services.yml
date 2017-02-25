@@ -13,20 +13,21 @@ services:
     alias: umenu.menu_storage.drupal
 
   # Default Drupal core driven item storage
-  umenu.item_storage.lefacy:
+  umenu.item_storage.legacy:
     public: false
-    class: MakinaCorpus\Umenu\LegacyItemStorage
+    class: MakinaCorpus\Umenu\Legacy\LegacyItemStorage
     arguments: ["@database"]
 
   # Change this to change the primary storage
   umenu.item_storage:
-    alias: umenu.item_storage.lefacy
+    alias: umenu.item_storage.legacy
 
   # Default tree builder, it will use the Drupal database and the core
   # menu_links table to load menu items
   umenu.tree_provider.drupal:
     public: false
-    class: MakinaCorpus\Umenu\LegacyTreeProvider
+    class: MakinaCorpus\Umenu\Legacy\LegacyTreeProvider
+    calls: [[setCacheBackend, ['@cache.default']]]
     arguments: ['@database']
 
   # Change this to change the primary tree builder

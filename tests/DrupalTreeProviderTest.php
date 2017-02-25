@@ -3,11 +3,11 @@
 namespace MakinaCorpus\Umenu\Tests;
 
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
-use MakinaCorpus\Umenu\TreeProviderInterface;
-use MakinaCorpus\Umenu\DrupalMenuStorage;
-use MakinaCorpus\Umenu\LegacyTreeProvider;
-use MakinaCorpus\Umenu\MenuStorageInterface;
 use MakinaCorpus\Ucms\Site\Tests\SiteTestTrait;
+use MakinaCorpus\Umenu\DrupalMenuStorage;
+use MakinaCorpus\Umenu\Legacy\LegacyTreeProvider;
+use MakinaCorpus\Umenu\MenuStorageInterface;
+use MakinaCorpus\Umenu\TreeProviderInterface;
 
 class LegacyTreeProviderTest extends AbstractDrupalTest
 {

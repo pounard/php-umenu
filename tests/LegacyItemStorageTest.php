@@ -3,8 +3,8 @@
 namespace MakinaCorpus\Umenu\Tests;
 
 use MakinaCorpus\Umenu\DrupalMenuStorage;
-use MakinaCorpus\Umenu\LegacyItemStorage;
-use MakinaCorpus\Umenu\LegacyTreeProvider;
+use MakinaCorpus\Umenu\Legacy\LegacyItemStorage;
+use MakinaCorpus\Umenu\Legacy\LegacyTreeProvider;
 
 class LegacyItemStorageTest extends AbstractItemStorageTest
 {

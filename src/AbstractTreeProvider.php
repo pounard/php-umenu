@@ -2,6 +2,8 @@
 
 namespace MakinaCorpus\Umenu;
 
+use Drupal\Core\Cache\CacheBackendInterface;
+
 /**
  * Loads trees.
  *
@@ -11,6 +13,7 @@ namespace MakinaCorpus\Umenu;
 abstract class AbstractTreeProvider implements TreeProviderInterface
 {
     private $db;
+    private $cache;
 
     /**
      * Default constructor, do not ommit it!
@@ -20,6 +23,16 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
     public function __construct(\DatabaseConnection $db)
     {
         $this->db = $db;
+    }
+
+    /**
+     * Allow tree cache
+     *
+     * @param CacheBackendInterface $cache
+     */
+    public function setCacheBackend(CacheBackendInterface $cache)
+    {
+        $this->cache = $cache;
     }
 
     /**
@@ -91,6 +104,22 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
             throw new \InvalidArgumentException("loading menu with access checks needs the user identifier");
         }
 
+        $doCache = false;
+        $cacheId = null;
+
+        if (!$withAccess) {
+            if ($this->cache) {
+                $cacheId = 'umenu:tree:' . $menuId;
+                $cached = $this->cache->get($cacheId);
+
+                if ($cached && $cached->data instanceof Tree) {
+                    return $cached->data;
+                }
+
+                $doCache = true;
+            }
+        }
+
         $items = $this->loadTreeItems($menuId);
 
         if ($withAccess) {
@@ -120,6 +149,12 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
             }
         }
 
-        return new Tree($items, $menuId, $relocateOrphans);
+        $tree = new Tree($items, $menuId, $relocateOrphans);
+
+        if ($doCache) {
+            $this->cache->set($cacheId, $tree);
+        }
+
+        return $tree;
     }
 }

@@ -17,7 +17,12 @@
     ],
     "autoload" : {
         "psr-4" : {
-            "MakinaCorpus\\Umenu\\" : "src"
+            "MakinaCorpus\\Umenu\\" : "src/"
+        }
+    },
+    "autoload-dev" : {
+        "psr-4" : {
+            "MakinaCorpus\\Umenu\\Tests\\" : "tests/"
         }
     },
     "require" : {

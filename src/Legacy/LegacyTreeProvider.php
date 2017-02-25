@@ -1,6 +1,9 @@
 <?php
 
-namespace MakinaCorpus\Umenu;
+namespace MakinaCorpus\Umenu\Legacy;
+
+use MakinaCorpus\Umenu\AbstractTreeProvider;
+use MakinaCorpus\Umenu\TreeItem;
 
 /**
  * Uses Drupal core menu_links table to load menu items.

@@ -1,6 +1,8 @@
 <?php
 
-namespace MakinaCorpus\Umenu;
+namespace MakinaCorpus\Umenu\Legacy;
+
+use MakinaCorpus\Umenu\ItemStorageInterface;
 
 /**
  * Et là, on fait rentrer des ronds dans des carrés.
