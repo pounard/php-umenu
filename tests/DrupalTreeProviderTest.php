@@ -80,7 +80,7 @@ class LegacyTreeProviderTest extends AbstractDrupalTest
         $nodeAB   = $this->createDrupalNode('test', null, ['status' => 0]);
         $menuAB   = $this->createMenuItem('a/b', $nodeAB, 'a');
         $nodeAD   = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
-        $menuAD  = $this->createMenuItem('a/d', $nodeAD, 'a');
+        $menuAD   = $this->createMenuItem('a/d', $nodeAD, 'a');
         $nodeABC  = $this->createDrupalNode('test', null, ['status' => 1, 'is_global' => 1]);
         $menuABC  = $this->createMenuItem('a/b/c', $nodeABC, 'a/b');
         $nodeB    = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
@@ -123,7 +123,7 @@ class LegacyTreeProviderTest extends AbstractDrupalTest
         $nodeAB   = $this->createDrupalNode('test', null, ['status' => 1]);
         $menuAB   = $this->createMenuItem('a/b', $nodeAB, 'a');
         $nodeAD   = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
-        $menuAD  = $this->createMenuItem('a/d', $nodeAD, 'a');
+        $menuAD   = $this->createMenuItem('a/d', $nodeAD, 'a');
         $nodeABC  = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
         $menuABC  = $this->createMenuItem('a/b/c', $nodeABC, 'a/b');
         $nodeB    = $this->createDrupalNode('test', null, ['status' => 0, 'is_global' => 1]);
