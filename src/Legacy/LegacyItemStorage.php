@@ -107,6 +107,36 @@ class LegacyItemStorage implements ItemStorageInterface
     }
 
     /**
+     * Get menu identifier for item
+     *
+     * @param int $itemId
+     *
+     * @return int
+     */
+    public function getMenuIdFor($itemId)
+    {
+        // Find parent identifier
+        $menuId = (int)$this
+            ->db
+            ->query("
+                    SELECT m.id
+                    FROM {menu_links} l
+                    JOIN {umenu} m ON m.name = l.menu_name
+                    WHERE l.mlid = ?
+                ",
+                [$itemId]
+            )
+            ->fetchField()
+        ;
+
+        if (!$menuId) {
+            throw new \InvalidArgumentException(sprintf("Item %d does not exist", $itemId));
+        }
+
+        return $menuId;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function insert($menuId, $nodeId, $title, $description = null)

@@ -8,6 +8,15 @@ namespace MakinaCorpus\Umenu;
 interface ItemStorageInterface
 {
     /**
+     * Get menu identifier for item
+     *
+     * @param int $itemId
+     *
+     * @return int
+     */
+    public function getMenuIdFor($itemId);
+
+    /**
      * Append new item within menu
      *
      * @param int $menuId
