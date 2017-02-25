@@ -2,13 +2,13 @@
 
 namespace MakinaCorpus\Umenu\Tests;
 
+use Drupal\Core\Cache\CacheBackendInterface;
 use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
-use MakinaCorpus\Umenu\TreeProviderInterface;
-use MakinaCorpus\Umenu\ItemStorageInterface;
-use MakinaCorpus\Umenu\MenuStorageInterface;
 use MakinaCorpus\Ucms\Site\Tests\SiteTestTrait;
 use MakinaCorpus\Umenu\CachedItemStorageProxy;
-use Drupal\Core\Cache\CacheBackendInterface;
+use MakinaCorpus\Umenu\ItemStorageInterface;
+use MakinaCorpus\Umenu\MenuStorageInterface;
+use MakinaCorpus\Umenu\TreeProviderInterface;
 
 /**
  * Cache and cache invalidation unit testing
