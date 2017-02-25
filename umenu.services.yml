@@ -1,26 +1,24 @@
 services:
 
-  # Default database driven storage, it must be always in use, even if
-  # proxified by another implementation because database is and will
-  # remain the primary storage
+  # Menu storage
   umenu.menu_storage.drupal:
     public: false
     class: MakinaCorpus\Umenu\MenuStorage
     arguments: ["@database", "@event_dispatcher"]
-
-  # Change this to change the primary storage
   umenu.menu_storage:
     alias: umenu.menu_storage.drupal
 
-  # Default Drupal core driven item storage
+  # Item storages definition
+  umenu.item_storage.default:
+    public: false
+    class: MakinaCorpus\Umenu\ItemStorage
+    arguments: ["@database"]
   umenu.item_storage.legacy:
     public: false
     class: MakinaCorpus\Umenu\Legacy\LegacyItemStorage
     arguments: ["@database"]
-
-  # Change this to change the primary storage
   umenu.item_storage:
-    alias: umenu.item_storage.legacy
+    alias: umenu.item_storage.default
 
   # Proxify the item storage using a cache aware proxy
   umenu.item_storage.cache_aware:
@@ -29,18 +27,21 @@ services:
     decorates: umenu.item_storage
     arguments: ['@umenu.item_storage.cache_aware.inner', '@cache.default']
 
-  # Default tree builder, it will use the Drupal database and the core
-  # menu_links table to load menu items
-  umenu.tree_provider.drupal:
+  # Tree builders definitions
+  umenu.tree_provider.default:
+    public: false
+    class: MakinaCorpus\Umenu\TreeProvider
+    calls: [[setCacheBackend, ['@cache.default']]]
+    arguments: ['@database']
+  umenu.tree_provider.legacy:
     public: false
     class: MakinaCorpus\Umenu\Legacy\LegacyTreeProvider
     calls: [[setCacheBackend, ['@cache.default']]]
     arguments: ['@database']
-
-  # Change this to change the primary tree builder
   umenu.tree_provider:
-    alias: umenu.tree_provider.drupal
+    alias: umenu.tree_provider.default
 
+  # For your own very pleasure in order to reduce your object dependencies
   umenu.manager:
     class: MakinaCorpus\Umenu\TreeManager
     arguments: ['@umenu.menu_storage', '@umenu.item_storage', '@umenu.tree_provider', '@current_user']
