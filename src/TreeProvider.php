@@ -22,7 +22,7 @@ class TreeProvider extends AbstractTreeProvider
                     WHERE menu_id = :id
                     ORDER BY
                         weight ASC,
-                        parent_id ASC,
+                        parent_id ASC NULLS FIRST,
                         id ASC
                 ",
                 [':id' => $menuId]
