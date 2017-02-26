@@ -196,28 +196,27 @@ class MenuStorage implements MenuStorageInterface
 
         if ($status) {
             // Drop main menu status for all others within the same site
-            $this
-                ->db
-                ->query(
-                    "UPDATE {umenu} SET is_main = 0 WHERE site_id = :site AND name <> :name",
-                    [':site' => $existing->getSiteId(), ':name' => $name]
-                )
-            ;
+            if ($existing->getSiteId()) {
+                $this->db->query(
+                    "UPDATE {umenu} SET is_main = 0 WHERE site_id = :site AND id <> :id",
+                    [':site' => $existing->getSiteId(), ':id' => $existing->getId()]
+                );
+            } else {
+                $this->db->query(
+                    "UPDATE {umenu} SET is_main = 0 WHERE site_id IS NULL OR site_id = 0 AND id <> :id",
+                    [':site' => $existing->getSiteId(), ':id' => $existing->getId()]
+                );
+            }
 
             // And change menu, yeah.
-            $this
-                ->db
-                ->query(
-                    "UPDATE {umenu} SET is_main = 1 WHERE name = :name",
-                    [':name' => $name]
-                )
-            ;
+            $this->db->query("UPDATE {umenu} SET is_main = 1 WHERE id = :id",[':id' => $existing->getId()]);
+
         } else {
             $this
                 ->db
                 ->query(
-                    "UPDATE {umenu} SET is_main = 0 WHERE name = :name",
-                    [':name' => $name]
+                    "UPDATE {umenu} SET is_main = 0 WHERE id = :id",
+                    [':name' => $existing->getId()]
                 )
             ;
         }
