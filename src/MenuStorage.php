@@ -32,16 +32,16 @@ class MenuStorage implements MenuStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function load($name)
+    public function load($id)
     {
-        if (is_numeric($name)) {
-            $list = $this->loadWithConditions(['id' => $name]);
+        if (is_numeric($id)) {
+            $list = $this->loadWithConditions(['id' => $id]);
         } else {
-            $list = $this->loadMultiple([$name]);
+            $list = $this->loadMultiple([$id]);
         }
 
         if (!$list) {
-            throw new \InvalidArgumentException(sprintf("%s: menu does not exist", $name));
+            throw new \InvalidArgumentException(sprintf("%s: menu does not exist", $id));
         }
 
         return reset($list);
@@ -50,9 +50,9 @@ class MenuStorage implements MenuStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function exists($name)
+    public function exists($id)
     {
-        $list = $this->loadMultiple([$name]);
+        $list = $this->loadMultiple([$id]);
 
         return (boolean)$list;
     }
@@ -91,29 +91,30 @@ class MenuStorage implements MenuStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function delete($name)
+    public function delete($id)
     {
-        $existing = null;
+        try {
+            $existing = $this->load($id);
 
-        if ($this->dispatcher) {
-            try {
-                $existing = $this->load($name);
-            } catch (\InvalidArgumentException $e) {}
-        }
+            $this->db->delete('umenu')->condition('id', $existing->getId())->execute();
 
-        $this->db->delete('umenu')->condition('name', $name)->execute();
-
-        if ($this->dispatcher && $existing) {
-            $this->dispatcher->dispatch(MenuEvent::EVENT_DELETE, new MenuEvent($existing));
+            if ($this->dispatcher && $existing) {
+                $this->dispatcher->dispatch(MenuEvent::EVENT_DELETE, new MenuEvent($existing));
+            }
+        } catch (\InvalidArgumentException $e) {
+            // Menu does not exists, return silently
+            // @todo specialize the exception
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function update($name, array $values)
+    public function update($id, array $values)
     {
         unset($values['name'], $values['id'], $values['status']);
+
+        $existing = $this->load($id);
 
         if (empty($values)) { // Nothing to update
             return;
@@ -123,21 +124,22 @@ class MenuStorage implements MenuStorageInterface
             ->db
             ->update('umenu')
             ->fields($values)
-            ->condition('name', $name)
+            ->condition('id', $existing->getId())
             ->execute()
         ;
 
         if ($this->dispatcher) {
-            $this->dispatcher->dispatch(MenuEvent::EVENT_UPDATE, new MenuEvent($this->load($name)));
+            // Since we updated it, we need to relaod it.
+            $this->dispatcher->dispatch(MenuEvent::EVENT_UPDATE, new MenuEvent($this->load($id)));
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function toggleRole($name, $role)
+    public function toggleRole($id, $role)
     {
-        $existing = $this->load($name);
+        $existing = $this->load($id);
 
         if (!$existing) {
             throw new \InvalidArgumentException(sprintf("%s: cannot change main status, menu does not exist", $name));
@@ -177,15 +179,15 @@ class MenuStorage implements MenuStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function toggleMainStatus($name, $toggle = true)
+    public function toggleMainStatus($id, $toggle = true)
     {
-        $existing = $this->load($name);
+        $existing = $this->load($id);
 
         if (!$existing) {
-            throw new \InvalidArgumentException(sprintf("%s: cannot change main status, menu does not exist", $name));
+            throw new \InvalidArgumentException(sprintf("%s: cannot change main status, menu does not exist", $id));
         }
         if (!$existing->getSiteId()) {
-            throw new \LogicException(sprintf("%s: cannot change main status, menu does not belong to a site", $name));
+            throw new \LogicException(sprintf("%s: cannot change main status, menu does not belong to a site", $id));
         }
 
         $status = (bool)$toggle;
