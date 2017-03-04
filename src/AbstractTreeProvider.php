@@ -8,12 +8,18 @@ use Drupal\Core\Cache\CacheBackendInterface;
  * Loads trees.
  *
  * @todo
- *   This seriously need to be fixed performance-wise
+ *   - This seriously need to be fixed performance-wise
+ *   - wipe out cache
+ *   - implement lru for cache (max 10 or more? items)
+ *   - implement per site all trees preload
+ *   - implement per site / role trees preload
  */
 abstract class AbstractTreeProvider implements TreeProviderInterface
 {
     private $db;
     private $cache;
+    private $perNodeTree = [];
+    private $loadedTrees = [];
 
     /**
      * Default constructor, do not ommit it!
@@ -86,13 +92,20 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
      */
     public function findTreeForNode($nodeId, array $conditions = [])
     {
+        // Not isset() here because result can null (no tree found)
+        if (array_key_exists($nodeId, $this->perNodeTree)) {
+            return $this->perNodeTree[$nodeId];
+        }
+
         $menuIdList = $this->findAllMenuFor($nodeId, $conditions);
 
         if ($menuIdList) {
             // Arbitrary take the first
             // @todo later give more control to this for users
-            return reset($menuIdList);
+            return $this->perNodeTree[$nodeId] = reset($menuIdList);
         }
+
+        $this->perNodeTree[$nodeId] = null;
     }
 
     /**
