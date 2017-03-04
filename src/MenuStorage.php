@@ -69,9 +69,14 @@ class MenuStorage implements MenuStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function loadWithConditions($conditions)
+    public function loadWithConditions($conditions, $mainFirst = true)
     {
         $q = $this->db->select('umenu', 'um')->fields('um');
+
+        if ($mainFirst) {
+            $q->orderBy('um.is_main', 'desc');
+            $q->orderBy('um.id', 'asc');
+        }
 
         foreach ($conditions as $key => $value) {
             $q->condition('um.' . $key, $value);

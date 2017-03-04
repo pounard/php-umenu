@@ -50,11 +50,13 @@ interface MenuStorageInterface
      * @param mixed[] $conditions
      *   Keys are field names, values are single values or array of values
      *   (case in which an IN query will be done)
+     * @param bool $mainFirst
+     *   If false, there will be no order on the query
      *
      * @return Menu[]
      *   Same as load() but an array of it
      */
-    public function loadWithConditions($conditions);
+    public function loadWithConditions($conditions, $mainFirst = true);
 
     /**
      * Delete a single menu definition
