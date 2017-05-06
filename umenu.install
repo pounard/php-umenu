@@ -141,7 +141,7 @@ function umenu_schema() {
         'table'   => 'ucms_site_node',
         'columns' => [
           'site_id' => 'site_id',
-          'node_id' => 'node_id',
+          'node_id' => 'nid',
         ],
         'delete'  => 'cascade',
       ],
@@ -209,11 +209,7 @@ function umenu_update_7003() {
     db_create_table('umenu_item', drupal_get_schema_unprocessed('umenu', 'umenu_item'));
   }
 
-  // Ensure once again constraints
-  // @todo Temporary de-activating this, because I cannot access to Mysql
-  // SHOW ENGINE INNODB STATUS on the box the error happens on, so I'm waiting
-  // for sysadmins to wake up.
-  // db_constraint_add_all('umenu_item', drupal_get_schema('umenu_item'));
+  db_constraint_fix('umenu');
 }
 
 /**
@@ -274,3 +270,9 @@ function umenu_update_7008() {
   ]);
 }
 
+/**
+ * Update schema.
+ */
+function umenu_update_7009() {
+  db_constraint_fix('umenu');
+}
