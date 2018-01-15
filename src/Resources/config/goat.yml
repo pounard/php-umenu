@@ -1,0 +1,22 @@
+services:
+
+    umenu.menu_storage:
+        public: false
+        class: MakinaCorpus\Umenu\Bridge\Goat\MenuStorage
+        arguments: ["@goat.session", "@event_dispatcher"]
+
+    umenu.item_storage:
+        public: false
+        class: MakinaCorpus\Umenu\Bridge\Goat\ItemStorage
+        arguments: ["@goat.session"]
+  
+    umenu.tree_provider:
+        public: false
+        class: MakinaCorpus\Umenu\Bridge\Goat\TreeProvider
+        # calls: [[setCacheBackend, ['@cache.default']]]
+        arguments: ['@goat.session']
+
+    umenu.manager:
+        public: true
+        class: MakinaCorpus\Umenu\TreeManager
+        arguments: ['@umenu.menu_storage', '@umenu.item_storage', '@umenu.tree_provider']

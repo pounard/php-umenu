@@ -24,14 +24,14 @@ class TreeBase
     }
 
     /**
-     * Get ordered node identifiers that matches the children, in the same order
+     * Get ordered page identifiers that matches the children, in the same order
      *
      * @return int[]
      */
-    public function getChildrenNodeIdList()
+    public function getChildrenPageIdList()
     {
         return array_map(function ($child) {
-            return $child->getNodeId();
+            return $child->getPageId();
         }, $this->children);
     }
 

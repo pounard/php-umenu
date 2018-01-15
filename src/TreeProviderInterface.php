@@ -8,34 +8,14 @@ namespace MakinaCorpus\Umenu;
 interface TreeProviderInterface
 {
     /**
-     * Can this implementation clone trees
-     *
-     * @return boolean
-     */
-    public function mayCloneTree();
-
-    /**
-     * Clone full tree in given menu
-     *
-     * @param int $menuId
-     *   Menu identifier
-     * @param Tree $tree
-     *   Tree to clone
-     *
-     * @return Tree
-     *   Newly created tree
-     */
-    public function cloneTreeIn($menuId, Tree $tree);
-
-    /**
-     * Find most revelant tree for node
+     * Find most revelant tree for page
      *
      * Equivalent of Drupal's menu_link_get_preferred().
      *
      * This method must always prefer menus with the 'is_main' property set
      * before others, to get a consitent behavior.
      *
-     * @param int $nodeId
+     * @param int $pageId
      *   Conditions that applies to the menu storage
      * @param mixed[] $conditions
      *   Conditions that applies to the menu storage
@@ -43,7 +23,7 @@ interface TreeProviderInterface
      * @return int
      *   Menu identifier, that you then may load using the buildTree() method
      */
-    public function findTreeForNode($nodeId, array $conditions = []);
+    public function findTreeForPage($pageId, array $conditions = []);
 
     /**
      * Build tree

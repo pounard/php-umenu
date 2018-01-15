@@ -1,0 +1,41 @@
+services:
+
+    umenu.menu_storage.drupal:
+        public: false
+        class: MakinaCorpus\Umenu\MenuStorage
+        arguments: ["@database", "@event_dispatcher"]
+    umenu.menu_storage:
+        alias: umenu.menu_storage.drupal
+
+    umenu.item_storage.default:
+        public: false
+        class: MakinaCorpus\Umenu\ItemStorage
+        arguments: ["@database"]
+
+    umenu.item_storage.legacy:
+        public: false
+        class: MakinaCorpus\Umenu\Legacy\LegacyItemStorage
+        arguments: ["@database"]
+
+    umenu.item_storage:
+        alias: umenu.item_storage.default
+
+    umenu.tree_provider.default:
+        public: false
+        class: MakinaCorpus\Umenu\TreeProvider
+        calls: [[setCacheBackend, ['@cache.default']]]
+        arguments: ['@database']
+
+    umenu.tree_provider.legacy:
+        public: false
+        class: MakinaCorpus\Umenu\Legacy\LegacyTreeProvider
+        calls: [[setCacheBackend, ['@cache.default']]]
+        arguments: ['@database']
+
+    umenu.tree_provider:
+        alias: umenu.tree_provider.default
+
+    umenu.manager:
+        public: true
+        class: MakinaCorpus\Umenu\TreeManager
+        arguments: ['@umenu.menu_storage', '@umenu.item_storage', '@umenu.tree_provider', '@current_user']

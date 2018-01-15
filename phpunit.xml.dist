@@ -19,7 +19,26 @@
         </testsuite>
     </testsuites>
 
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory>./</directory>
+            <exclude>
+                <directory>./src/Resources</directory>
+                <directory>./tests/Functionnal/Drupal</directory>
+                <directory>./vendor</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
     <php>
+        <!-- Uses an existing Drupal site for testing
         <env name="DRUPAL_PATH" value="/var/www/monsite/public" />
+         -->
+        <!-- Uses Goat for testing
+          @todo make this work more dynamically with other drivers
+        <env name="EXT_PGSQL_DSN" value="ext_pgsql://192.168.57.102/chlovet2" />
+        <env name="EXT_PGSQL_PASSWORD" value="chlovet2" />
+        <env name="EXT_PGSQL_USERNAME" value="chlovet2" />
+         -->
     </php>
 </phpunit>

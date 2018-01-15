@@ -2,8 +2,6 @@
 
 namespace MakinaCorpus\Umenu;
 
-use Drupal\Core\Session\AccountInterface;
-
 class TreeManager
 {
     private $menuStorage;
@@ -15,13 +13,13 @@ class TreeManager
     public function __construct(
         MenuStorageInterface $menuStorage,
         ItemStorageInterface $itemStorage,
-        TreeProviderInterface $provider,
-        AccountInterface $currentUser
+        TreeProviderInterface $provider /*,
+        AccountInterface $currentUser */
     ) {
         $this->menuStorage = $menuStorage;
         $this->itemStorage = $itemStorage;
         $this->provider = $provider;
-        $this->currentUser = $currentUser;
+        /* $this->currentUser = $currentUser; */
     }
 
     /**
@@ -64,11 +62,11 @@ class TreeManager
             foreach ($item->getChildren() as $child) {
 
                 if ($previous) {
-                    $previous = $this->itemStorage->insertAfter($previous, $child->getNodeId(), $child->getTitle(), $child->getDescription());
+                    $previous = $this->itemStorage->insertAfter($previous, $child->getPageId(), $child->getTitle(), $child->getDescription());
                 } else if ($parentId) {
-                    $previous = $this->itemStorage->insertAsChild($parentId, $child->getNodeId(), $child->getTitle(), $child->getDescription());
+                    $previous = $this->itemStorage->insertAsChild($parentId, $child->getPageId(), $child->getTitle(), $child->getDescription());
                 } else {
-                    $previous = $this->itemStorage->insert($menuId, $child->getNodeId(), $child->getTitle(), $child->getDescription());
+                    $previous = $this->itemStorage->insert($menuId, $child->getPageId(), $child->getTitle(), $child->getDescription());
                 }
 
                 $this->cloneTreeRecursion($menuId, $child, $previous);
@@ -136,17 +134,13 @@ class TreeManager
      */
     public function cloneTreeIn($menuId, Tree $tree)
     {
-        if ($this->provider->mayCloneTree()) {
-            return $this->provider->cloneTreeIn($menuId, $tree);
-        }
-
         $this->cloneTreeRecursion($menuId, $tree);
 
         return $this->provider->buildTree($menuId, false);
     }
 
     /**
-     * Arbitrary find a tree where the node is with the given conditions
+     * Arbitrary find a tree where the page is with the given conditions
      *
      * This a very naive version of menu_link_get_preferred().
      *
@@ -157,7 +151,7 @@ class TreeManager
      *   by role, by adding a 'priority' column, by giving an abitrary sort
      *   field, or by a list of fixed ordered names
      *
-     * @param int $nodeId
+     * @param int $pageId
      * @param mixed[] $conditions
      *   Conditions that applies to the menu storage
      * @param boolean $withAccess
@@ -169,9 +163,9 @@ class TreeManager
      * @return Tree
      *   It may be null if nothing has been found
      */
-    public function findTreeForNode($nodeId, array $conditions = [], $withAccess = false, $relocateOrphans = false)
+    public function findTreeForPage($pageId, array $conditions = [], $withAccess = false, $relocateOrphans = false)
     {
-        $menuId = $this->provider->findTreeForNode($nodeId, $conditions);
+        $menuId = $this->provider->findTreeForPage($pageId, $conditions);
 
         if ($menuId) {
             return $this->buildTree($menuId, $withAccess, $relocateOrphans);
@@ -203,7 +197,7 @@ class TreeManager
 
         return $this->cache[$menuId][(int)$withAccess] = $this
             ->getTreeProvider()
-            ->buildTree($menuId, $withAccess, $this->currentUser->id(), $relocateOrphans)
+            ->buildTree($menuId, $withAccess, /* $this->currentUser->id(), null */ $relocateOrphans)
         ;
     }
 }

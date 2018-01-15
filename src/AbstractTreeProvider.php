@@ -2,7 +2,7 @@
 
 namespace MakinaCorpus\Umenu;
 
-use Drupal\Core\Cache\CacheBackendInterface;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * Loads trees.
@@ -16,27 +16,14 @@ use Drupal\Core\Cache\CacheBackendInterface;
  */
 abstract class AbstractTreeProvider implements TreeProviderInterface
 {
-    private $db;
     private $cache;
-    private $perNodeTree = [];
+    private $perPageTree = [];
     private $loadedTrees = [];
 
     /**
-     * Default constructor, do not ommit it!
-     *
-     * @param \DatabaseConnection $db
-     */
-    public function __construct(\DatabaseConnection $db)
-    {
-        $this->db = $db;
-    }
-
-    /**
      * Allow tree cache
-     *
-     * @param CacheBackendInterface $cache
      */
-    public function setCacheBackend(CacheBackendInterface $cache)
+    public function setCacheBackend(CacheInterface $cache)
     {
         $this->cache = $cache;
     }
@@ -53,7 +40,7 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
     /**
      * Load tree items
      *
-     * @param int $nodeId
+     * @param int $pageId
      *   Conditions that applies to the menu storage
      * @param mixed[] $conditions
      *   Conditions that applies to the menu storage
@@ -61,51 +48,43 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
      * @return string[]
      *   List of menu identifiers
      */
-    abstract protected function findAllMenuFor($nodeId, array $conditions = []);
+    abstract protected function findAllMenuFor($pageId, array $conditions = []);
 
     /**
-     * @return \DatabaseConnection
+     * Load tree items
+     *
+     * @param TreeItem[]
+     *   TreeItem to check access for
+     * @param int $userId
+     *   Current user identifier to check access for
+     *
+     * @return TreeItem[]
+     *   List of menu items the given user can access
      */
-    final protected function getDatabase()
+    protected function ensureAccessOf(array $items, $userId) : array
     {
-        return $this->db;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function mayCloneTree()
-    {
-        return false;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function cloneTreeIn($menuId, Tree $tree)
-    {
-        throw new \LogicException("This tree provider implementation cannot clone trees");
+        return $items; // Default is no possible access checks
     }
 
     /**
      * {@inheritdoc}
      */
-    public function findTreeForNode($nodeId, array $conditions = [])
+    public function findTreeForPage($pageId, array $conditions = [])
     {
         // Not isset() here because result can null (no tree found)
-        if (array_key_exists($nodeId, $this->perNodeTree)) {
-            return $this->perNodeTree[$nodeId];
+        if (array_key_exists($pageId, $this->perPageTree)) {
+            return $this->perPageTree[$pageId];
         }
 
-        $menuIdList = $this->findAllMenuFor($nodeId, $conditions);
+        $menuIdList = $this->findAllMenuFor($pageId, $conditions);
 
         if ($menuIdList) {
             // Arbitrary take the first
             // @todo later give more control to this for users
-            return $this->perNodeTree[$nodeId] = reset($menuIdList);
+            return $this->perPageTree[$pageId] = reset($menuIdList);
         }
 
-        $this->perNodeTree[$nodeId] = null;
+        $this->perPageTree[$pageId] = null;
     }
 
     /**
@@ -122,7 +101,7 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
 
         if (!$withAccess) {
             if ($this->cache) {
-                $cacheId = 'umenu:tree:' . $menuId;
+                $cacheId = 'umenu_tree_' . $menuId;
                 $cached = $this->cache->get($cacheId);
 
                 if ($cached && $cached->data instanceof Tree) {
@@ -136,30 +115,7 @@ abstract class AbstractTreeProvider implements TreeProviderInterface
         $items = $this->loadTreeItems($menuId);
 
         if ($withAccess) {
-            $nodeMap = [];
-
-            foreach ($items as $item) {
-                $nodeMap[] = $item->getNodeId();
-            }
-
-            if (!empty($nodeMap)) {
-                $allowed = $this
-                    ->getDatabase()
-                    ->select('node', 'n')
-                    ->fields('n', ['nid', 'nid'])
-                    ->condition('n.nid', $nodeMap)
-                    ->condition('n.status', 1)
-                    ->addTag('node_access')
-                    ->execute()
-                    ->fetchAllKeyed()
-                ;
-
-                foreach ($items as $key => $item) {
-                    if (!isset($allowed[$item->getNodeId()])) {
-                        unset($items[$key]);
-                    }
-                }
-            }
+            $items = $this->ensureAccessOf($items, $userId);
         }
 
         $tree = new Tree($items, $menuId, $relocateOrphans);

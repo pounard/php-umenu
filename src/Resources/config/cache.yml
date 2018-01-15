@@ -1,0 +1,7 @@
+services:
+
+    umenu.item_storage.cache_aware:
+        public: false
+        class: MakinaCorpus\Umenu\CachedItemStorageProxy
+        decorates: umenu.item_storage
+        arguments: ['@umenu.item_storage.cache_aware.inner', '@cache.default']

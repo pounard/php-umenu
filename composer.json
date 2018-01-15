@@ -1,9 +1,9 @@
 {
-    "name": "makinacorpus/drupal-umenu",
+    "name": "makinacorpus/php-umenu",
     "type": "drupal-module",
-    "description": "Drupal core menu module replacement that does not attach to node types",
+    "description": "Very simple CMS page menu tree handling API",
     "keywords": [],
-    "homepage": "http://github.com/makinacorpus/drupal-umenu",
+    "homepage": "http://github.com/makinacorpus/php-umenu",
     "license": "GPL-2",
     "authors": [
         {
@@ -15,6 +15,37 @@
             "homepage": "http://makina-corpus.com"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:pounard/GeneratedHydrator.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:pounard/goat.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:pounard/goat-bundle.git"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require" : {
+        "php": ">=7.1",
+        "psr/cache" : "^1"
+    },
+    "require-dev": {
+        "makinacorpus/goat": "dev-master",
+        "makinacorpus/goat-bundle": "dev-master",
+        "phpunit/phpunit" : "^6"
+    },
+    "suggests": {
+        "makinacorpus/drupal-sf-dic ^3 || ^4": "Required for working in a Drupal environment",
+        "makinacorpus/drupal-umenu ^3": "Required for working in a Drupal environment",
+        "makinacorpus/goat": "Enables Goat storage backend",
+        "makinacorpus/goat-bundle": "Uses Goat installer for managing database schema for the Goat storage backend"
+    },
     "autoload" : {
         "psr-4" : {
             "MakinaCorpus\\Umenu\\" : "src/"
@@ -24,10 +55,5 @@
         "psr-4" : {
             "MakinaCorpus\\Umenu\\Tests\\" : "tests/"
         }
-    },
-    "require" : {
-        "makinacorpus/drupal-plusql" : "^1.0.0",
-        "makinacorpus/drupal-sf-dic" : "^3.0"
-    },
-    "minimum-stability": "dev"
+    }
 }

@@ -6,6 +6,8 @@ namespace MakinaCorpus\Umenu;
  * Single menu object
  *
  * This class is immutable, modifications are done via the menu storage.
+ *
+ * @codeCoverageIgnore
  */
 class Menu
 {
@@ -16,28 +18,6 @@ class Menu
     private $site_id;
     private $is_main;
     private $role;
-
-    /**
-     * Default constructor
-     *
-     * @param int $id
-     * @param string $name
-     * @param string $title
-     * @param null|string $description
-     * @param null|int $siteId
-     * @param bool $isMain
-     * @param null|string $role
-     */
-    public function __construct($id = null, $name = null, $title = null, $description = null, $siteId = null, $isMain = false, $role = null)
-    {
-        $this->id = $id;
-        $this->name = $name;
-        $this->is_main = (bool)$isMain;
-        $this->title = $title;
-        $this->description = $description;
-        $this->site_id = $siteId;
-        $this->role = $role ? $role : null;
-    }
 
     /**
      * Menu menu

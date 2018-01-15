@@ -4,13 +4,16 @@ namespace MakinaCorpus\Umenu;
 
 /**
  * Represents a single tree item.
+ *
+ * @codeCoverageIgnore
+ *   But don't worry, isInTrailOf() will be tested.
  */
 final class TreeItem extends TreeBase
 {
     private $id;
     private $menu_id;
     private $site_id;
-    private $node_id;
+    private $page_id;
     private $parent_id;
     private $weight;
     private $title;
@@ -31,9 +34,9 @@ final class TreeItem extends TreeBase
         return $this->site_id;
     }
 
-    public function getNodeId()
+    public function getPageId()
     {
-        return $this->node_id;
+        return $this->page_id;
     }
 
     public function getParentId()
@@ -58,17 +61,17 @@ final class TreeItem extends TreeBase
 
     public function getRoute()
     {
-        return 'node/' . $this->node_id;
+        return 'page/' . $this->page_id;
     }
 
-    public function isInTrailOf($nodeId)
+    public function isInTrailOf($pageId)
     {
-        if ($nodeId === $this->node_id) {
+        if ($pageId === $this->page_id) {
             return true;
         }
 
         foreach ($this->children as $child) {
-            if ($child->isInTrailOf($nodeId)) {
+            if ($child->isInTrailOf($pageId)) {
                 return true;
             }
         }

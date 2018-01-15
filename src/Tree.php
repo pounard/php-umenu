@@ -12,7 +12,7 @@ namespace MakinaCorpus\Umenu;
 final class Tree extends TreeBase
 {
     private $topLevel = [];
-    private $perNode = [];
+    private $perPage = [];
     private $menuId;
     private $menuName;
 
@@ -35,7 +35,7 @@ final class Tree extends TreeBase
     /**
      * Get menu identifier
      *
-     * @return id
+     * @return int
      */
     public function getMenuId()
     {
@@ -70,7 +70,7 @@ final class Tree extends TreeBase
         // second!
         foreach ($items as $item) {
             if (!$item instanceof TreeItem) {
-                throw new \InvalidArgumentException("items must be instances of \MakinaCorpus\Umenu\TreeItem");
+                throw new \InvalidArgumentException(sprintf("items must be instances of %s", TreeItem::class));
             }
 
             $this->children[$item->getId()] = $item;
@@ -97,10 +97,10 @@ final class Tree extends TreeBase
                 $this->children[$parentId]->children[$item->getId()] = $item;
             }
 
-            // And we need to be able to fetch those per node too.
-            $nodeId = $item->getNodeId();
-            if ($nodeId) {
-                $this->perNode[$nodeId][] = $item;
+            // And we need to be able to fetch those per page too.
+            $pageId = $item->getPageId();
+            if ($pageId) {
+                $this->perPage[$pageId][] = $item;
             }
         }
     }
@@ -120,61 +120,61 @@ final class Tree extends TreeBase
     }
 
     /**
-     * Does the given node has items within this menu
+     * Does the given page has items within this menu
      *
-     * @param int $nodeId
+     * @param int $pageId
      *
      * @return boolean
      */
-    public function hasNodeItems($nodeId)
+    public function hasPageItems($pageId)
     {
-        return !empty($this->perNode[$nodeId]);
+        return !empty($this->perPage[$pageId]);
     }
 
     /**
-     * Get items for the given node
+     * Get items for the given page
      *
-     * @param int $nodeId
+     * @param int $pageId
      *
      * @return TreeItem[]
      */
-    public function getItemsPerNode($nodeId)
+    public function getItemsPerPage($pageId)
     {
-        if (isset($this->perNode[$nodeId])) {
-            return $this->perNode[$nodeId];
+        if (isset($this->perPage[$pageId])) {
+            return $this->perPage[$pageId];
         }
 
         return [];
     }
 
     /**
-     * Get most revelant item for node
+     * Get most revelant item for page
      *
-     * @param int $nodeId
+     * @param int $pageId
      *
      * @return TreeItem
      *  Can be null if none found
      */
-    public function getMostRevelantItemForNode($nodeId)
+    public function getMostRevelantItemForPage($pageId)
     {
-        if (isset($this->perNode[$nodeId])) {
-            return reset($this->perNode[$nodeId]);
+        if (isset($this->perPage[$pageId])) {
+            return reset($this->perPage[$pageId]);
         }
     }
 
     /**
-     * Get most revelant trail for node
+     * Get most revelant trail for page
      *
-     * @param int $nodeId
+     * @param int $pageId
      *
      * @return TreeItem[]
-     *  Tree items in order, from the top most parent to the node item
+     *  Tree items in order, from the top most parent to the page item
      */
-    public function getMostRevelantTrailForNode($nodeId)
+    public function getMostRevelantTrailForPage($pageId)
     {
         $trail = [];
 
-        $item = $this->getMostRevelantItemForNode($nodeId);
+        $item = $this->getMostRevelantItemForPage($pageId);
         if (!$item) {
             return $trail;
         }

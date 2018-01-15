@@ -1,31 +1,23 @@
 <?php
 
-namespace MakinaCorpus\Umenu;
+namespace MakinaCorpus\Umenu\Bridge\Drupal;
 
+use MakinaCorpus\Umenu\Menu;
+use MakinaCorpus\Umenu\MenuStorageInterface;
 use MakinaCorpus\Umenu\Event\MenuEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class MenuStorage implements MenuStorageInterface
 {
-    /**
-     * @var \DatabaseConnection
-     */
-    private $db;
-
-    /**
-     * @var EventDispatcherInterface
-     */
+    private $database;
     private $dispatcher;
 
     /**
      * Default constructor
-     *
-     * @param \DatabaseConnection $db
-     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(\DatabaseConnection $db, EventDispatcherInterface $dispatcher = null)
+    public function __construct(\DatabaseConnection $database, EventDispatcherInterface $dispatcher = null)
     {
-        $this->db = $db;
+        $this->database = $database;
         $this->dispatcher = $dispatcher;
     }
 
@@ -54,7 +46,7 @@ class MenuStorage implements MenuStorageInterface
     {
         $list = $this->loadMultiple([$id]);
 
-        return (boolean)$list;
+        return (bool)$list;
     }
 
     /**
@@ -71,7 +63,7 @@ class MenuStorage implements MenuStorageInterface
      */
     public function loadWithConditions($conditions, $mainFirst = true)
     {
-        $q = $this->db->select('umenu', 'um')->fields('um');
+        $q = $this->database->select('umenu', 'um')->fields('um');
 
         if ($mainFirst) {
             $q->orderBy('um.is_main', 'desc');
@@ -101,7 +93,7 @@ class MenuStorage implements MenuStorageInterface
         try {
             $existing = $this->load($id);
 
-            $this->db->delete('umenu')->condition('id', $existing->getId())->execute();
+            $this->database->delete('umenu')->condition('id', $existing->getId())->execute();
 
             if ($this->dispatcher && $existing) {
                 $this->dispatcher->dispatch(MenuEvent::EVENT_DELETE, new MenuEvent($existing));
@@ -126,7 +118,7 @@ class MenuStorage implements MenuStorageInterface
         }
 
         $this
-            ->db
+            ->database
             ->update('umenu')
             ->fields($values)
             ->condition('id', $existing->getId())
@@ -160,7 +152,7 @@ class MenuStorage implements MenuStorageInterface
 
         if ($role) {
             $this
-                ->db
+                ->database
                 ->query(
                     "UPDATE {umenu} SET role = :role WHERE id = :id",
                     [':role' => $role, ':id' => $existing->getId()]
@@ -168,7 +160,7 @@ class MenuStorage implements MenuStorageInterface
             ;
         } else {
             $this
-                ->db
+                ->database
                 ->query(
                     "UPDATE {umenu} SET role = NULL WHERE id = :id",
                     [':id' => $existing->getId()]
@@ -204,23 +196,23 @@ class MenuStorage implements MenuStorageInterface
         if ($status) {
             // Drop main menu status for all others within the same site
             if ($existing->getSiteId()) {
-                $this->db->query(
+                $this->database->query(
                     "UPDATE {umenu} SET is_main = 0 WHERE site_id = :site AND id <> :id",
                     [':site' => $existing->getSiteId(), ':id' => $existing->getId()]
                 );
             } else {
-                $this->db->query(
+                $this->database->query(
                     "UPDATE {umenu} SET is_main = 0 WHERE site_id IS NULL OR site_id = 0 AND id <> :id",
                     [':site' => $existing->getSiteId(), ':id' => $existing->getId()]
                 );
             }
 
             // And change menu, yeah.
-            $this->db->query("UPDATE {umenu} SET is_main = 1 WHERE id = :id",[':id' => $existing->getId()]);
+            $this->database->query("UPDATE {umenu} SET is_main = 1 WHERE id = :id",[':id' => $existing->getId()]);
 
         } else {
             $this
-                ->db
+                ->database
                 ->query(
                     "UPDATE {umenu} SET is_main = 0 WHERE id = :id",
                     [':name' => $existing->getId()]
@@ -238,7 +230,7 @@ class MenuStorage implements MenuStorageInterface
      */
     public function create($name, array $values = [])
     {
-        $exists = (bool)$this->db->query("SELECT 1 FROM {umenu} WHERE name = ?", [$name])->fetchField();
+        $exists = (bool)$this->database->query("SELECT 1 FROM {umenu} WHERE name = ?", [$name])->fetchField();
 
         if ($exists) {
             throw new \InvalidArgumentException(sprintf("%s: cannot create menu, already exists", $name));
@@ -252,7 +244,7 @@ class MenuStorage implements MenuStorageInterface
         unset($values['id']);
 
         $this
-            ->db
+            ->database
             ->insert('umenu')
             ->fields($values)
             ->execute()

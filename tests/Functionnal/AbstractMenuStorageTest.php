@@ -1,28 +1,42 @@
 <?php
 
-namespace MakinaCorpus\Umenu\Tests;
+namespace MakinaCorpus\Umenu\Tests\Functionnal;
 
-use MakinaCorpus\Drupal\Sf\Tests\AbstractDrupalTest;
 use MakinaCorpus\Umenu\Menu;
-use MakinaCorpus\Umenu\MenuStorage;
+use PHPUnit\Framework\TestCase;
 
-class DefaultMenuStorageTest extends AbstractDrupalTest
+abstract class AbstractMenuStorageTest extends TestCase
 {
+    use MenuTestTrait;
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $storage = $this->getMenuStorage();
+        $storage->delete('foo');
+        $storage->delete('bar');
+        $storage->delete('baz');
+    }
+
     protected function tearDown()
     {
-        $this->getDatabaseConnection()->query("DELETE FROM {umenu} WHERE name IN ('foo', 'bar', 'a', 'b', 'c', 'd', 'e', 'f')");
-
         parent::tearDown();
+
+        $storage = $this->getMenuStorage();
+        $storage->delete('foo');
+        $storage->delete('bar');
+        $storage->delete('baz');
     }
 
     public function testCrud()
     {
-        $storage = new MenuStorage($this->getDatabaseConnection());
+        $storage = $this->getMenuStorage();
 
         // Load a non existing menu (exception)
         try {
             $storage->load('foo');
-            $this->fail();
+            $this->fail("foo should not have been loaded");
         } catch (\InvalidArgumentException $e) {}
 
         // Load many names (no exceptions, but empty)
@@ -106,13 +120,13 @@ class DefaultMenuStorageTest extends AbstractDrupalTest
     }
 
 
-    public function testMainMenuStatus()
-    {
-        // @todo We have a dependency problem with ucms_site
-    }
+//     public function testMainMenuStatus()
+//     {
+//         // @todo We have a dependency problem with ucms_site
+//     }
 
-    public function testEvents()
-    {
-        // @todo
-    }
+//     public function testEvents()
+//     {
+//         // @todo
+//     }
 }

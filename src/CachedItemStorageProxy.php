@@ -2,7 +2,7 @@
 
 namespace MakinaCorpus\Umenu;
 
-use Drupal\Core\Cache\CacheBackendInterface;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * Item storage;
@@ -14,11 +14,8 @@ class CachedItemStorageProxy implements ItemStorageInterface
 
     /**
      * Default constructor
-     *
-     * @param ItemStorageInterface $nested
-     * @param CacheBackendInterface $cache
      */
-    public function __construct(ItemStorageInterface $nested, CacheBackendInterface $cache)
+    public function __construct(ItemStorageInterface $nested, CacheInterface $cache)
     {
         $this->nested = $nested;
         $this->cache = $cache;
@@ -31,9 +28,9 @@ class CachedItemStorageProxy implements ItemStorageInterface
      *
      * @return string
      */
-    private function getCacheId($menuId)
+    private function getCacheId(int $menuId) : string
     {
-        return 'umenu:tree:' . $menuId;
+        return 'umenu_tree_' . $menuId;
     }
 
     /**
@@ -43,15 +40,15 @@ class CachedItemStorageProxy implements ItemStorageInterface
      *
      * @return string
      */
-    private function getCacheIdFrom($itemId)
+    private function getCacheIdFrom(int $itemId) : string
     {
-        return 'umenu:tree:' . $this->nested->getMenuIdFor($itemId);
+        return 'umenu_tree_' . $this->nested->getMenuIdFor($itemId);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getMenuIdFor($itemId)
+    public function getMenuIdFor(int $itemId) : int
     {
         return $this->nested->getMenuIdFor($itemId);
     }
@@ -59,9 +56,9 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insert($menuId, $nodeId, $title, $description = null)
+    public function insert(int $menuId, int $pageId, string $title, string $description = '') : int
     {
-        $ret = $this->nested->insert($menuId, $nodeId, $title, $description);
+        $ret = $this->nested->insert($menuId, $pageId, $title, $description);
         $this->cache->delete($this->getCacheId($menuId));
 
         return $ret;
@@ -70,9 +67,9 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insertAsChild($otherItemId, $nodeId, $title, $description = null)
+    public function insertAsChild(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        $ret = $this->nested->insertAsChild($otherItemId, $nodeId, $title, $description);
+        $ret = $this->nested->insertAsChild($otherItemId, $pageId, $title, $description);
         $this->cache->delete($this->getCacheIdFrom($otherItemId));
 
         return $ret;
@@ -81,9 +78,9 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insertAfter($otherItemId, $nodeId, $title, $description = null)
+    public function insertAfter(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        $ret = $this->nested->insertAfter($otherItemId, $nodeId, $title, $description);
+        $ret = $this->nested->insertAfter($otherItemId, $pageId, $title, $description);
         $this->cache->delete($this->getCacheIdFrom($otherItemId));
 
         return $ret;
@@ -92,9 +89,9 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insertBefore($otherItemId, $nodeId, $title, $description = null)
+    public function insertBefore(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        $ret = $this->nested->insertBefore($otherItemId, $nodeId, $title, $description);
+        $ret = $this->nested->insertBefore($otherItemId, $pageId, $title, $description);
         $this->cache->delete($this->getCacheIdFrom($otherItemId));
 
         return $ret;
@@ -103,9 +100,9 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function update($itemId, $nodeId = null, $title = null, $description = null)
+    public function update(int $itemId, int $pageId = null, string $title = '', string $description = '')
     {
-        $ret = $this->nested->update($itemId, $nodeId, $title, $description);
+        $ret = $this->nested->update($itemId, $pageId, $title, $description);
         $this->cache->delete($this->getCacheIdFrom($itemId));
 
         return $ret;
@@ -114,7 +111,7 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveAsChild($itemId, $otherItemId)
+    public function moveAsChild(int $itemId, int $otherItemId)
     {
         $ret = $this->nested->moveAsChild($itemId, $otherItemId);
         $this->cache->delete($this->getCacheIdFrom($itemId));
@@ -125,7 +122,7 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveToRoot($itemId)
+    public function moveToRoot(int $itemId)
     {
         $ret = $this->nested->moveToRoot($itemId);
         $this->cache->delete($this->getCacheIdFrom($itemId));
@@ -136,7 +133,7 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveAfter($itemId, $otherItemId)
+    public function moveAfter(int $itemId, int $otherItemId)
     {
         $ret = $this->nested->moveAfter($itemId, $otherItemId);
         $this->cache->delete($this->getCacheIdFrom($itemId));
@@ -147,7 +144,7 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveBefore($itemId, $otherItemId)
+    public function moveBefore(int $itemId, int $otherItemId)
     {
         $ret = $this->nested->moveBefore($itemId, $otherItemId);
         $this->cache->delete($this->getCacheIdFrom($itemId));
@@ -158,7 +155,7 @@ class CachedItemStorageProxy implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function delete($itemId)
+    public function delete(int $itemId)
     {
         // For deletion, fetch cache identifier first
         $cacheId = $this->getCacheIdFrom($itemId);

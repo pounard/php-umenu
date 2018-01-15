@@ -1,6 +1,9 @@
 <?php
 
-namespace MakinaCorpus\Umenu;
+namespace MakinaCorpus\Umenu\Bridge\Goat;
+
+use Goat\Runner\RunnerInterface;
+use MakinaCorpus\Umenu\ItemStorageInterface;
 
 /**
  * Item storage using our custom schema
@@ -9,12 +12,12 @@ class ItemStorage implements ItemStorageInterface
 {
     private $database;
 
-    public function __construct(\DatabaseConnection $database)
+    public function __construct(RunnerInterface $database)
     {
         $this->database = $database;
     }
 
-    protected function validateMenu($menuId, $title, $nodeId)
+    protected function validateMenu(int $menuId, string $title, int $pageId)
     {
         if (empty($menuId)) {
             throw new \InvalidArgumentException("Menu identifier cannot be empty");
@@ -22,14 +25,14 @@ class ItemStorage implements ItemStorageInterface
         if (empty($title)) {
             throw new \InvalidArgumentException("Title cannot be empty");
         }
-        if (empty($nodeId)) {
-            throw new \InvalidArgumentException("Node identifier cannot be empty");
+        if (empty($pageId)) {
+            throw new \InvalidArgumentException("Page identifier cannot be empty");
         }
 
-        $values = $this
+        $values = (array)$this
             ->database
-            ->query("SELECT id, site_id FROM {umenu} WHERE id = ?", [$menuId])
-            ->fetchAssoc()
+            ->query("SELECT id, site_id FROM umenu WHERE id = $*", [$menuId])
+            ->fetch()
         ;
 
         if (!$values) {
@@ -39,7 +42,7 @@ class ItemStorage implements ItemStorageInterface
         return array_values($values);
     }
 
-    protected function validateItem($otherItemId, $title, $nodeId)
+    protected function validateItem(int $otherItemId, string $title, int $pageId)
     {
         if (empty($otherItemId)) {
             throw new \InvalidArgumentException("Relative item identifier cannot be empty");
@@ -47,18 +50,18 @@ class ItemStorage implements ItemStorageInterface
         if (empty($title)) {
             throw new \InvalidArgumentException("Title cannot be empty");
         }
-        if (empty($nodeId)) {
-            throw new \InvalidArgumentException("Node identifier cannot be empty");
+        if (empty($pageId)) {
+            throw new \InvalidArgumentException("Page identifier cannot be empty");
         }
 
         // Find parent identifier
-        $values = $this
+        $values = (array)$this
             ->database
             ->query(
-                "SELECT menu_id, site_id, parent_id, weight FROM {umenu_item} WHERE id = ?",
+                "SELECT menu_id, site_id, parent_id, weight FROM umenu_item WHERE id = $*",
                 [$otherItemId]
             )
-            ->fetchAssoc()
+            ->fetch()
         ;
 
         if (!$values) {
@@ -68,7 +71,7 @@ class ItemStorage implements ItemStorageInterface
         return array_values($values);
     }
 
-    protected function validateMove($itemId, $otherItemId)
+    protected function validateMove(int $itemId, int $otherItemId)
     {
         if (empty($otherItemId)) {
             throw new \InvalidArgumentException("Relative item identifier cannot be empty");
@@ -77,20 +80,20 @@ class ItemStorage implements ItemStorageInterface
             throw new \InvalidArgumentException("Item identifier cannot be empty");
         }
 
-        $exists = (bool)$this->database->query("SELECT 1 FROM {umenu_item} WHERE id = ?", [$itemId])->fetchField();
+        $exists = (bool)$this->database->query("SELECT 1 FROM umenu_item WHERE id = $*", [$itemId])->fetchField();
 
         if (!$exists) {
             throw new \InvalidArgumentException(sprintf("Item %d does not exist", $itemId));
         }
 
         // Find parent identifier
-        $data = $this
+        $data = (array)$this
             ->database
             ->query(
-                "SELECT menu_id, site_id, parent_id, weight FROM {umenu_item} WHERE id = ?",
+                "SELECT menu_id, site_id, parent_id, weight FROM umenu_item WHERE id = $*",
                 [$otherItemId]
             )
-            ->fetchAssoc()
+            ->fetch()
         ;
 
         if (!$data) {
@@ -101,19 +104,15 @@ class ItemStorage implements ItemStorageInterface
     }
 
     /**
-     * Get menu identifier for item
-     *
-     * @param int $itemId
-     *
-     * @return int
+     * {@inheritdoc}
      */
-    public function getMenuIdFor($itemId)
+    public function getMenuIdFor(int $itemId) : int
     {
         // Find parent identifier
         $menuId = (int)$this
             ->database
             ->query(
-                "SELECT menu_id FROM {umenu_item} WHERE id = ?",
+                "SELECT menu_id FROM umenu_item WHERE id = $*",
                 [$itemId]
             )
             ->fetchField()
@@ -129,14 +128,14 @@ class ItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insert($menuId, $nodeId, $title, $description = null)
+    public function insert(int $menuId, int $pageId, string $title, string $description = '') : int
     {
-        list($menuId, $siteId) = $this->validateMenu($menuId, $title, $nodeId);
+        list($menuId, $siteId) = $this->validateMenu($menuId, $title, $pageId);
 
         $weight = (int)$this
             ->database
             ->query(
-                "SELECT MAX(weight) + 1 FROM {umenu_item} WHERE menu_id = ? AND parent_id IS NULL",
+                "SELECT MAX(weight) + 1 FROM umenu_item WHERE menu_id = $* AND parent_id IS NULL",
                 [$menuId]
             )
             ->fetchField()
@@ -144,31 +143,33 @@ class ItemStorage implements ItemStorageInterface
 
         return (int)$this
             ->database
-            ->insert('umenu_item')
-            ->fields([
+            ->insertValues('umenu_item')
+            ->values([
                 'menu_id'     => $menuId,
                 'site_id'     => $siteId,
-                'node_id'     => $nodeId,
+                'page_id'     => $pageId,
                 'parent_id'   => null,
                 'weight'      => $weight,
                 'title'       => $title,
                 'description' => $description,
             ])
+            ->returning('id')
             ->execute()
+            ->fetchField()
         ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function insertAsChild($otherItemId, $nodeId, $title, $description = null)
+    public function insertAsChild(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        list($menuId, $siteId) = $this->validateItem($otherItemId, $title, $nodeId);
+        list($menuId, $siteId) = $this->validateItem($otherItemId, $title, $pageId);
 
         $weight = (int)$this
             ->database
             ->query(
-                "SELECT MAX(weight) + 1 FROM {umenu_item} WHERE parent_id = ?",
+                "SELECT MAX(weight) + 1 FROM umenu_item WHERE parent_id = $*",
                 [$otherItemId]
             )
             ->fetchField()
@@ -176,125 +177,117 @@ class ItemStorage implements ItemStorageInterface
 
         return (int)$this
             ->database
-            ->insert('umenu_item')
-            ->fields([
+            ->insertValues('umenu_item')
+            ->values([
                 'menu_id'     => $menuId,
                 'site_id'     => $siteId,
-                'node_id'     => $nodeId,
+                'page_id'     => $pageId,
                 'parent_id'   => $otherItemId,
                 'weight'      => $weight,
                 'title'       => $title,
                 'description' => $description,
             ])
+            ->returning('id')
             ->execute()
+            ->fetchField()
         ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function insertAfter($otherItemId, $nodeId, $title, $description = null)
+    public function insertAfter(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        list($menuId, $siteId, $parentId, $weight) = $this->validateItem($otherItemId, $title, $nodeId);
+        list($menuId, $siteId, $parentId, $weight) = $this->validateItem($otherItemId, $title, $pageId);
 
         if ($parentId) {
             $this
                 ->database
                 ->query(
-                    "UPDATE {umenu_item} SET weight = weight + 2 WHERE parent_id = :parent AND id <> :id AND weight >= :weight",
-                    [
-                        ':id'     => $otherItemId,
-                        ':parent' => $parentId,
-                        ':weight' => $weight,
-                    ]
+                    "UPDATE umenu_item SET weight = weight + 2 WHERE parent_id = $* AND id <> $* AND weight >= $*",
+                    [$parentId, $otherItemId, $weight]
                 )
             ;
         } else {
             $this
                 ->database
                 ->query(
-                    "UPDATE {umenu_item} SET weight = weight + 2 WHERE parent_id IS NULL AND id <> :id AND weight >= :weight",
-                    [
-                        ':id'     => $otherItemId,
-                        ':weight' => $weight,
-                    ]
+                    "UPDATE umenu_item SET weight = weight + 2 WHERE parent_id IS NULL AND id <> $* AND weight >= $*",
+                    [$otherItemId, $weight]
                 )
             ;
         }
 
         return (int)$this
             ->database
-            ->insert('umenu_item')
-            ->fields([
+            ->insertValues('umenu_item')
+            ->values([
                 'menu_id'     => $menuId,
                 'site_id'     => $siteId,
-                'node_id'     => $nodeId,
+                'page_id'     => $pageId,
                 'parent_id'   => $parentId,
                 'weight'      => $weight + 1,
                 'title'       => $title,
                 'description' => $description,
             ])
+            ->returning('id')
             ->execute()
+            ->fetchField()
         ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function insertBefore($otherItemId, $nodeId, $title, $description = null)
+    public function insertBefore(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        list($menuId, $siteId, $parentId, $weight) = $this->validateItem($otherItemId, $title, $nodeId);
+        list($menuId, $siteId, $parentId, $weight) = $this->validateItem($otherItemId, $title, $pageId);
 
         if ($parentId) {
             $this
                 ->database
                 ->query(
-                    "UPDATE {umenu_item} SET weight = weight - 2 WHERE parent_id = :parent AND id <> :id AND weight <= :weight",
-                    [
-                        ':id'     => $otherItemId,
-                        ':parent' => $parentId,
-                        ':weight' => $weight,
-                    ]
+                    "UPDATE umenu_item SET weight = weight - 2 WHERE parent_id = $* AND id <> $* AND weight <= $*",
+                    [$parentId, $otherItemId, $weight]
                 )
             ;
         } else {
             $this
                 ->database
                 ->query(
-                    "UPDATE {umenu_item} SET weight = weight - 2 WHERE parent_id IS NULL AND id <> :id AND weight <= :weight",
-                    [
-                        ':id'     => $otherItemId,
-                        ':weight' => $weight,
-                    ]
+                    "UPDATE umenu_item SET weight = weight - 2 WHERE parent_id IS NULL AND id <> $* AND weight <= $*",
+                    [$otherItemId, $weight]
                 )
             ;
         }
 
         return (int)$this
             ->database
-            ->insert('umenu_item')
-            ->fields([
+            ->insertValues('umenu_item')
+            ->values([
                 'menu_id'     => $menuId,
                 'site_id'     => $siteId,
-                'node_id'     => $nodeId,
+                'page_id'     => $pageId,
                 'parent_id'   => $parentId,
                 'weight'      => $weight - 1,
                 'title'       => $title,
                 'description' => $description,
             ])
+            ->returning('id')
             ->execute()
+            ->fetchField()
         ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function update($itemId, $nodeId = null, $title = null, $description = null)
+    public function update(int $itemId, int $pageId = null, string $title = '', string $description = '')
     {
         $exists = (bool)$this
             ->database
             ->query(
-                "SELECT 1 FROM {umenu_item} WHERE id = ?",
+                "SELECT 1 FROM umenu_item WHERE id = $*",
                 [$itemId]
             )
             ->fetchField()
@@ -305,8 +298,8 @@ class ItemStorage implements ItemStorageInterface
         }
 
         $values = [];
-        if (null !== $nodeId) {
-            $values['node_id'] = $nodeId;
+        if (null !== $pageId) {
+            $values['page_id'] = $pageId;
         }
         if (null !== $title) {
             $values['title'] = $title;
@@ -322,7 +315,7 @@ class ItemStorage implements ItemStorageInterface
         $this
             ->database
             ->update('umenu_item')
-            ->fields($values)
+            ->sets($values)
             ->condition('id', $itemId)
             ->execute()
         ;
@@ -331,28 +324,20 @@ class ItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveAsChild($itemId, $otherItemId)
+    public function moveAsChild(int $itemId, int $otherItemId)
     {
         $this->validateMove($itemId, $otherItemId);
 
-        $weight = (int)$this
-            ->database
-            ->query(
-                "SELECT MAX(weight) + 1 FROM {umenu_item} WHERE parent_id = ?",
-                [$otherItemId]
-            )
-            ->fetchField()
-        ;
-
         $this
             ->database
             ->query(
-                "UPDATE {umenu_item} SET parent_id = :parent, weight = :weight WHERE id = :id",
-                [
-                    ':id'     => $itemId,
-                    ':parent' => $otherItemId,
-                    ':weight' => $weight,
-                ]
+                "
+                    WITH max_weight AS (
+                        SELECT MAX(weight) + 1 AS weight FROM umenu_item WHERE parent_id = $*
+                    )
+                    UPDATE umenu_item SET parent_id = $*, weight = (SELECT COALESCE(weight, 0) FROM max_weight) WHERE id = $*
+                ",
+                [$otherItemId, $otherItemId, $itemId]
             )
         ;
     }
@@ -360,27 +345,20 @@ class ItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveToRoot($itemId)
+    public function moveToRoot(int $itemId)
     {
         $menuId = $this->getMenuIdFor($itemId);
 
-        $weight = (int)$this
-            ->database
-            ->query(
-                "SELECT MAX(weight) + 1 FROM {umenu_item} WHERE parent_id = 0 AND menu_id = ?",
-                [$menuId]
-            )
-            ->fetchField()
-        ;
-
         $this
             ->database
             ->query(
-                "UPDATE {umenu_item} SET parent_id = NULL, weight = :weight WHERE id = :id",
-                [
-                    ':id'     => $itemId,
-                    ':weight' => $weight,
-                ]
+                "
+                    WITH max_weight AS (
+                        SELECT MAX(weight) + 1 AS weight FROM umenu_item WHERE (parent_id = 0 OR parent_id IS NULL) AND menu_id = $*
+                    )
+                    UPDATE umenu_item SET parent_id = NULL, weight = (SELECT COALESCE(weight, 0) FROM max_weight) WHERE id = $*
+                ",
+                [$menuId, $itemId]
             )
         ;
     }
@@ -388,7 +366,7 @@ class ItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveAfter($itemId, $otherItemId)
+    public function moveAfter(int $itemId, int $otherItemId)
     {
         list(,, $parentId, $weight) = $this->validateMove($itemId, $otherItemId);
 
@@ -396,23 +374,16 @@ class ItemStorage implements ItemStorageInterface
             $this
                 ->database
                 ->query(
-                    "UPDATE {umenu_item} SET weight = weight + 2 WHERE parent_id = :parent AND id <> :id AND weight >= :weight",
-                    [
-                        ':id'     => $otherItemId,
-                        ':parent' => $parentId,
-                        ':weight' => $weight,
-                    ]
+                    "UPDATE umenu_item SET weight = weight + 2 WHERE parent_id = $* AND id <> $* AND weight >= $*",
+                    [$parentId, $otherItemId, $weight]
                 )
             ;
         } else {
             $this
                 ->database
                 ->query(
-                    "UPDATE {umenu_item} SET weight = weight + 2 WHERE parent_id IS NULL AND id <> :id AND weight >= :weight",
-                    [
-                        ':id'     => $otherItemId,
-                        ':weight' => $weight,
-                    ]
+                    "UPDATE umenu_item SET weight = weight + 2 WHERE parent_id IS NULL AND id <> $* AND weight >= $*",
+                    [$otherItemId, $weight]
                 )
             ;
         }
@@ -420,12 +391,8 @@ class ItemStorage implements ItemStorageInterface
         $this
             ->database
             ->query(
-                "UPDATE {umenu_item} SET parent_id = :parent, weight = :weight WHERE id = :id",
-                [
-                    ':id'     => $itemId,
-                    ':parent' => $parentId,
-                    ':weight' => $weight + 1,
-                ]
+                "UPDATE umenu_item SET parent_id = $*, weight = $* WHERE id = $*",
+                [$parentId, $weight + 1, $itemId]
             )
         ;
     }
@@ -433,7 +400,7 @@ class ItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveBefore($itemId, $otherItemId)
+    public function moveBefore(int $itemId, int $otherItemId)
     {
         list(,, $parentId, $weight) = $this->validateMove($itemId, $otherItemId);
 
@@ -441,23 +408,16 @@ class ItemStorage implements ItemStorageInterface
             $this
                 ->database
                 ->query(
-                    "UPDATE {umenu_item} SET weight = weight - 2 WHERE parent_id = :parent AND id <> :id AND weight <= :weight",
-                    [
-                        ':id'     => $otherItemId,
-                        ':parent' => $parentId,
-                        ':weight' => $weight - 1,
-                    ]
+                    "UPDATE umenu_item SET weight = weight - 2 WHERE parent_id = $* AND id <> $* AND weight <= $*",
+                    [$parentId, $otherItemId, $weight - 1]
                 )
             ;
         } else {
             $this
                 ->database
                 ->query(
-                    "UPDATE {umenu_item} SET weight = weight - 2 WHERE parent_id IS NULL AND id <> :id AND weight <= :weight",
-                    [
-                        ':id'     => $otherItemId,
-                        ':weight' => $weight - 1,
-                    ]
+                    "UPDATE umenu_item SET weight = weight - 2 WHERE parent_id IS NULL AND id <> $* AND weight <= $*",
+                    [$otherItemId, $weight - 1]
                 )
             ;
         }
@@ -465,12 +425,8 @@ class ItemStorage implements ItemStorageInterface
         $this
             ->database
             ->query(
-                "UPDATE {umenu_item} SET parent_id = :parent, weight = :weight WHERE id = :id",
-                [
-                    ':id'     => $itemId,
-                    ':parent' => $parentId,
-                    ':weight' => $weight - 1,
-                ]
+                "UPDATE umenu_item SET parent_id = $*, weight = $* WHERE id = $*",
+                [$parentId, $weight - 1, $itemId]
             )
         ;
     }
@@ -478,12 +434,12 @@ class ItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function delete($itemId)
+    public function delete(int $itemId)
     {
         $this
             ->database
             ->query(
-                "DELETE FROM {umenu_item} WHERE id = ?",
+                "DELETE FROM umenu_item WHERE id = $*",
                 [$itemId]
             )
         ;

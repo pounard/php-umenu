@@ -1,6 +1,6 @@
 <?php
 
-namespace MakinaCorpus\Umenu\Legacy;
+namespace MakinaCorpus\Umenu\Bridge\Drupal;
 
 use MakinaCorpus\Umenu\ItemStorageInterface;
 
@@ -9,14 +9,17 @@ use MakinaCorpus\Umenu\ItemStorageInterface;
  */
 class LegacyItemStorage implements ItemStorageInterface
 {
-    private $db;
+    private $database;
 
-    public function __construct(\DatabaseConnection $db)
+    /**
+     * Default constructor
+     */
+    public function __construct(\DatabaseConnection $database)
     {
-        $this->db = $db;
+        $this->database = $database;
     }
 
-    protected function validateMenu($menuId, $title, $nodeId)
+    protected function validateMenu(int $menuId, string $title, int $pageId)
     {
         if (empty($menuId)) {
             throw new \InvalidArgumentException("Menu identifier cannot be empty");
@@ -24,11 +27,11 @@ class LegacyItemStorage implements ItemStorageInterface
         if (empty($title)) {
             throw new \InvalidArgumentException("Title cannot be empty");
         }
-        if (empty($nodeId)) {
-            throw new \InvalidArgumentException("Node identifier cannot be empty");
+        if (empty($pageId)) {
+            throw new \InvalidArgumentException("Page identifier cannot be empty");
         }
 
-        $menu = $this->db->query("SELECT * FROM {umenu} WHERE id = ?", [$menuId])->fetchAssoc();
+        $menu = $this->database->query("SELECT * FROM {umenu} WHERE id = ?", [$menuId])->fetchAssoc();
 
         if (!$menu) {
             throw new \InvalidArgumentException(sprintf("Menu %d does not exist", $menuId));
@@ -37,7 +40,7 @@ class LegacyItemStorage implements ItemStorageInterface
         return $menu;
     }
 
-    protected function validateItem($otherItemId, $title, $nodeId)
+    protected function validateItem(int $otherItemId, string $title, int $pageId)
     {
         if (empty($otherItemId)) {
             throw new \InvalidArgumentException("Relative item identifier cannot be empty");
@@ -45,13 +48,13 @@ class LegacyItemStorage implements ItemStorageInterface
         if (empty($title)) {
             throw new \InvalidArgumentException("Title cannot be empty");
         }
-        if (empty($nodeId)) {
-            throw new \InvalidArgumentException("Node identifier cannot be empty");
+        if (empty($pageId)) {
+            throw new \InvalidArgumentException("Page identifier cannot be empty");
         }
 
         // Find parent identifier
         $data = $this
-            ->db
+            ->database
             ->query("
                     SELECT m.id, m.name, l.plid, l.weight
                     FROM {menu_links} l
@@ -70,7 +73,7 @@ class LegacyItemStorage implements ItemStorageInterface
         return array_values($data);
     }
 
-    protected function validateMove($itemId, $otherItemId)
+    protected function validateMove(int $itemId, int $otherItemId)
     {
         if (empty($otherItemId)) {
             throw new \InvalidArgumentException("Relative item identifier cannot be empty");
@@ -79,7 +82,7 @@ class LegacyItemStorage implements ItemStorageInterface
             throw new \InvalidArgumentException("Item identifier cannot be empty");
         }
 
-        $exists = (bool)$this->db->query("SELECT 1 FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
+        $exists = (bool)$this->database->query("SELECT 1 FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
 
         if (!$exists) {
             throw new \InvalidArgumentException(sprintf("Item %d does not exist", $itemId));
@@ -87,7 +90,7 @@ class LegacyItemStorage implements ItemStorageInterface
 
         // Find parent identifier
         $data = $this
-            ->db
+            ->database
             ->query("
                     SELECT m.id, m.name, l.plid, l.weight
                     FROM {menu_links} l
@@ -113,11 +116,11 @@ class LegacyItemStorage implements ItemStorageInterface
      *
      * @return int
      */
-    public function getMenuIdFor($itemId)
+    public function getMenuIdFor(int $itemId) : int
     {
         // Find parent identifier
         $menuId = (int)$this
-            ->db
+            ->database
             ->query("
                     SELECT m.id
                     FROM {menu_links} l
@@ -139,15 +142,15 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insert($menuId, $nodeId, $title, $description = null)
+    public function insert(int $menuId, int $pageId, string $title, string $description = '') : int
     {
-        $menu = $this->validateMenu($menuId, $title, $nodeId);
+        $menu = $this->validateMenu($menuId, $title, $pageId);
 
-        $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE menu_name = ? AND plid = 0", [$menu['name']])->fetchField();
+        $weight = (int)$this->database->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE menu_name = ? AND plid = 0", [$menu['name']])->fetchField();
 
         $link = [
             'menu_name'  => $menu['name'],
-            'link_path'  => 'node/' . $nodeId,
+            'link_path'  => 'page/' . $pageId,
             'link_title' => $title,
             'expanded'   => 1,
             'weight'     => $weight,
@@ -163,15 +166,15 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insertAsChild($otherItemId, $nodeId, $title, $description = null)
+    public function insertAsChild(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        list(, $menuName) = $this->validateItem($otherItemId, $title, $nodeId);
+        list(, $menuName) = $this->validateItem($otherItemId, $title, $pageId);
 
-        $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = ?", [$otherItemId])->fetchField();
+        $weight = (int)$this->database->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = ?", [$otherItemId])->fetchField();
 
         $link = [
             'menu_name'  => $menuName,
-            'link_path'  => 'node/' . $nodeId,
+            'link_path'  => 'page/' . $pageId,
             'link_title' => $title,
             'expanded'   => 1,
             'weight'     => $weight,
@@ -188,12 +191,12 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insertAfter($otherItemId, $nodeId, $title, $description = null)
+    public function insertAfter(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        list(, $menuName, $parentId, $weight) = $this->validateItem($otherItemId, $title, $nodeId);
+        list(, $menuName, $parentId, $weight) = $this->validateItem($otherItemId, $title, $pageId);
 
         $this
-            ->db
+            ->database
             ->query(
                 "UPDATE {menu_links} SET weight = weight + 2 WHERE plid = :plid AND mlid <> :mlid AND weight >= :neww",
                 [
@@ -206,7 +209,7 @@ class LegacyItemStorage implements ItemStorageInterface
 
         $link = [
             'menu_name'  => $menuName,
-            'link_path'  => 'node/' . $nodeId,
+            'link_path'  => 'page/' . $pageId,
             'link_title' => $title,
             'expanded'   => 1,
             'weight'     => $weight + 1,
@@ -223,12 +226,12 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function insertBefore($otherItemId, $nodeId, $title, $description = null)
+    public function insertBefore(int $otherItemId, int $pageId, string $title, string $description = '') : int
     {
-        list(, $menuName, $parentId, $weight) = $this->validateItem($otherItemId, $title, $nodeId);
+        list(, $menuName, $parentId, $weight) = $this->validateItem($otherItemId, $title, $pageId);
 
         $this
-            ->db
+            ->database
             ->query(
                 "UPDATE {menu_links} SET weight = weight - 2 WHERE plid = :plid AND mlid <> :mlid AND weight <= :neww",
                 [
@@ -241,7 +244,7 @@ class LegacyItemStorage implements ItemStorageInterface
 
         $link = [
             'menu_name'  => $menuName,
-            'link_path'  => 'node/' . $nodeId,
+            'link_path'  => 'page/' . $pageId,
             'link_title' => $title,
             'expanded'   => 1,
             'weight'     => $weight - 1,
@@ -258,9 +261,9 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function update($itemId, $nodeId = null, $title = null, $description = null)
+    public function update(int $itemId, int $pageId = null, string $title = '', string $description = '')
     {
-        $exists = (bool)$this->db->query("SELECT 1 FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
+        $exists = (bool)$this->database->query("SELECT 1 FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
 
         if (!$exists) {
             throw new \InvalidArgumentException(sprintf("Item %d does not exist", $itemId));
@@ -268,8 +271,8 @@ class LegacyItemStorage implements ItemStorageInterface
 
         $item = menu_link_load($itemId);
 
-        if (null !== $nodeId) {
-            $item['link_path'] = 'node/' . $nodeId;
+        if (null !== $pageId) {
+            $item['link_path'] = 'page/' . $pageId;
         }
         if (null !== $title) {
             $item['link_title'] = $title;
@@ -286,11 +289,11 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveAsChild($itemId, $otherItemId)
+    public function moveAsChild(int $itemId, int $otherItemId)
     {
         $this->validateMove($itemId, $otherItemId);
 
-        $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = ?", [$otherItemId])->fetchField();
+        $weight = (int)$this->database->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = ?", [$otherItemId])->fetchField();
 
         $item = menu_link_load($itemId);
         $item['weight'] = $weight;
@@ -304,15 +307,15 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveToRoot($itemId)
+    public function moveToRoot(int $itemId)
     {
-        $menuName = (string)$this->db->query("SELECT menu_name FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
+        $menuName = (string)$this->database->query("SELECT menu_name FROM {menu_links} WHERE mlid = ?", [$itemId])->fetchField();
 
         if (!$menuName) {
             throw new \InvalidArgumentException(sprintf("Item %d does not exist", $itemId));
         }
 
-        $weight = (int)$this->db->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = 0 AND menu_name = ?", [$menuName])->fetchField();
+        $weight = (int)$this->database->query("SELECT MAX(weight) + 1 FROM {menu_links} WHERE plid = 0 AND menu_name = ?", [$menuName])->fetchField();
 
         $item = menu_link_load($itemId);
         $item['weight'] = $weight;
@@ -326,12 +329,12 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveAfter($itemId, $otherItemId)
+    public function moveAfter(int $itemId, int $otherItemId)
     {
         list(,, $parentId, $weight) = $this->validateMove($itemId, $otherItemId);
 
         $this
-            ->db
+            ->database
             ->query(
                 "UPDATE {menu_links} SET weight = weight + 2 WHERE plid = :plid AND mlid <> :mlid AND weight >= :neww",
                 [
@@ -354,12 +357,12 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function moveBefore($itemId, $otherItemId)
+    public function moveBefore(int $itemId, int $otherItemId)
     {
         list(,, $parentId, $weight) = $this->validateMove($itemId, $otherItemId);
 
         $this
-            ->db
+            ->database
             ->query(
                 "UPDATE {menu_links} SET weight = weight - 2 WHERE plid = :plid AND mlid <> :mlid AND weight <= :neww",
                 [
@@ -382,7 +385,7 @@ class LegacyItemStorage implements ItemStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function delete($itemId)
+    public function delete(int $itemId)
     {
         menu_link_delete($itemId);
     }
