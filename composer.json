@@ -1,6 +1,6 @@
 {
     "name": "makinacorpus/php-umenu",
-    "type": "drupal-module",
+    "type": "library",
     "description": "Very simple CMS page menu tree handling API",
     "keywords": [],
     "homepage": "http://github.com/makinacorpus/php-umenu",
