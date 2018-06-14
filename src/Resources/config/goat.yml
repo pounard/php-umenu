@@ -20,3 +20,8 @@ services:
         public: true
         class: MakinaCorpus\Umenu\TreeManager
         arguments: ['@umenu.menu_storage', '@umenu.item_storage', '@umenu.tree_provider']
+
+    umenu.goat.updater:
+        public: true
+        class: MakinaCorpus\Umenu\Bridge\Goat\MenuUpdater
+        tags: [{name: goat.updater, priority: -1000}]

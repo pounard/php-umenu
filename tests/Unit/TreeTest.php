@@ -86,7 +86,8 @@ class TreeTest extends TestCase
         $this->assertSame(6, $item7->getParentId());
         $this->assertSame(0, $item7->getChildCount());
 
-        $this->assertSame($item7, reset($item6->getChildren()));
+        $children = $item6->getChildren();
+        $this->assertSame($item7, reset($children));
     }
 
     public function testGetItemsFor()

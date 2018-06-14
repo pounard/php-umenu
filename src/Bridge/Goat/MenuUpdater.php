@@ -16,6 +16,14 @@ class MenuUpdater extends Updater
     /**
      * {@inheritdoc}
      */
+    public function getAlias() : string
+    {
+        return 'umenu';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function installSchema(RunnerInterface $runner, Transaction $transaction)
     {
         $runner->query(<<<EOT

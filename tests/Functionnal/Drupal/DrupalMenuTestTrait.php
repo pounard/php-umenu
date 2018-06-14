@@ -61,7 +61,9 @@ trait DrupalMenuTestTrait
         $variableName = 'DRUPAL_PATH';
 
         // Try to find out the right site root.
-        $directory = getenv($variableName);
+        if (!$directory = getenv($variableName)) {
+            return null;
+        }
 
         if (!is_dir($directory)) {
             throw new \RuntimeException(sprintf("%s: directory does not exists", $directory));
@@ -122,7 +124,13 @@ trait DrupalMenuTestTrait
 
     private function getDatabaseConnection() : \DatabaseConnection
     {
-        return self::findDrupalDatabase();
+        $database = self::findDrupalDatabase();
+
+        if (null === $database) {
+            $this->markTestSkipped("No Drupal path provided");
+        }
+
+        return $database;
     }
 
     protected function createSite() : int

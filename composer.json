@@ -38,7 +38,8 @@
     "require-dev": {
         "makinacorpus/goat": "dev-master",
         "makinacorpus/goat-bundle": "dev-master",
-        "phpunit/phpunit" : "^6"
+        "phpunit/phpunit" : "^6",
+        "symfony/yaml": "^4.1"
     },
     "suggests": {
         "makinacorpus/drupal-sf-dic ^3 || ^4": "Required for working in a Drupal environment",
